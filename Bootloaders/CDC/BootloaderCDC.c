@@ -112,6 +112,13 @@ void Application_Jump_Check(void)
  */
 int main(void)
 {
+	* David Cox
+	 * In my application is needs internal pullups activated on special pins on these ports as soon as possible.
+	 */
+	PORTB = 0xFF;
+	PORTC = 0xFF;
+	PORTF = 0xFF;
+
 	/* Setup hardware required for the bootloader */
 	SetupHardware();
 
