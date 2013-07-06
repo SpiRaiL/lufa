@@ -133,6 +133,7 @@ void Application_Jump_Check(void)
  */
 int main(void)
 {
+    CUSTOMISATION_ON_START
 	SetupHardware();
 
 	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
@@ -142,6 +143,7 @@ int main(void)
 	{
 		MS_Device_USBTask(&Disk_MS_Interface);
 		USB_USBTask();
+        CUSTOMISATION_IN_MAIN_LOOP
 	}
 
 	/* Disconnect from the host - USB interface will be reset later along with the AVR */
