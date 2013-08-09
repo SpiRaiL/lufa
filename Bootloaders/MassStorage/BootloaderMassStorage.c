@@ -35,6 +35,7 @@
 
 #define  INCLUDE_FROM_BOOTLOADER_MASSSTORAGE_C
 #include "BootloaderMassStorage.h"
+#include "MassStorage_customisations.h"
 
 /** LUFA Mass Storage Class driver interface configuration and state information. This structure is
  *  passed to all Mass Storage Class driver functions, so that multiple instances of the same class
@@ -133,12 +134,12 @@ void Application_Jump_Check(void)
  */
 int main(void)
 {
-    CUSTOMISATION_ON_START
 	SetupHardware();
 
 	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
 	GlobalInterruptEnable();
 
+    CUSTOMISATION_ON_START
 	while (RunBootloader || TicksSinceLastCommand++ < 0xFF)
 	{
 		MS_Device_USBTask(&Disk_MS_Interface);
