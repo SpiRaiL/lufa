@@ -67,7 +67,7 @@ static const FATBootBlock_t BootBlock =
 		.PhysicalDriveNum        = 0,
 		.ExtendedBootRecordSig   = 0x29,
 		.VolumeSerialNumber      = 0x12345678,
-		.VolumeLabel             = "CLOCK CLOCK",
+		.VolumeLabel             = "CLOCKCLOCK ",
 		.FilesystemIdentifier    = "FAT12   ",
 	};
 
@@ -82,7 +82,7 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 		{
 			.MSDOS_Directory =
 				{
-					.Name            = "CLOCK CLOCK",
+					.Name            = "CLOCKCLOCK ",
 					.Attributes      = FAT_FLAG_VOLUME_NAME,
 					.Reserved        = {0},
 					.CreationTime    = 0,
