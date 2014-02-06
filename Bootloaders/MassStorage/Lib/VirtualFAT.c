@@ -37,6 +37,7 @@
 
 #define  INCLUDE_FROM_VIRTUAL_FAT_C
 #include "VirtualFAT.h"
+#include "../MassStorage_customisations.h"
 
 /** FAT filesystem boot sector block, must be the first sector on the physical
  *  disk so that the host can identify the presence of a FAT filesystem. This
@@ -228,6 +229,7 @@ static uint8_t ReadEEPROMByte(const uint8_t* const Address)
 static void WriteEEPROMByte(uint8_t* const Address,
                             const uint8_t Data)
 {
+	 CUSTOMISATION_WRITE_PROTECTION;
 	 eeprom_update_byte(Address, Data);
 }
 
