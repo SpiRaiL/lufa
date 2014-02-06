@@ -30,6 +30,7 @@ Since the code is THIS file is practicually useless for anything else: The code 
 //#define PREPARE_OUPUT_PORTS DDRF=0xff; PORTF=0xff
 #define DISABLE_ALL_BOARDS PORTF=0xff; /*boards are already input by defauls, this enables pullsup to ensure high state */
 #define PREPARE_BUTTONS DDRD&=~PORTD_MASK; PORTD|=PORTD_MASK; DDRC&=~(1<<PC6); PORTC|=(1<<PC6); MCUCR&=~(1<<PUD);
+// PUD to high would be pull-up disable on all pins, so we put it to low becuase we dont want it. 
 
 #define EXIT_ON_BUTTON_CHECK \
 	new_mask = BUTTON_MASK; \
