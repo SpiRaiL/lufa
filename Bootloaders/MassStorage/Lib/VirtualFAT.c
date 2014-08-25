@@ -72,9 +72,9 @@ static const FATBootBlock_t BootBlock =
 		.FilesystemIdentifier    = "FAT12   ",
 	};
 
-static const FATBootBlock_t FatBlock = {
-		.Bootstrap               = {0x00, 0x00, 0x00},
-};
+// Blank fat block, will be used to buffer
+static const uint8_t FatBlock[SECTOR_SIZE_BYTES];
+//FatBlock[0] = 0;
 
 /** FAT 8.3 style directory entry, for the virtual FLASH contents file. */
 static FATDirectoryEntry_t FirmwareFileEntries[] =
@@ -270,6 +270,12 @@ static void UpdateFAT12ClusterEntry(uint8_t* const FATTable,
 	}
 }
 
+/** Gets the value in the fat12 table */
+static uint16_t GetFatIndexValue(uint16_t BlockNumber) {
+	//TODO Logic here
+	return 0x000;	
+};
+
 /** Updates a FAT12 cluster chain in the FAT file table with a linear chain of
  *  the specified length.
  *
@@ -303,8 +309,36 @@ static void ReadWriteDataBlock(const uint16_t BlockNumber,
 {
 	/* First see if we are trying to write to address flash file */
 	// get first FAT location of FLASH by looking at the pointer
-	uint16_t Fat_block_counter = 0;
-	uint16_t Fat_block_index = (*FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
+	uint16_t File_Block_counter = 0;
+	uint16_t File_Block_index = (*FLASHFileStartCluster);
+
+	while ( (File_Block_index<0xFF0) && (File_Block_index != BlockNumber) )	   {
+		File_Block_counter++;
+		File_Block_index = GetFatIndexValue(File_Block_index);
+
+	}
+
+	// If the index matches, then we have found that we are in the file
+	if ( File_Block_index<0xFF0 ) {
+		//TODO call the read/write on the file location at counter
+		return;
+	}
+
+	// We diddnt find the file, so lets check if its in the eeprom
+	File_Block_counter = 0;
+	File_Block_index = (*EEPROMFileStartCluster);
+
+	while ( (File_Block_index<0xFF0) && (File_Block_index != BlockNumber) )	   {
+		File_Block_counter++;
+		File_Block_index = GetFatIndexValue(File_Block_index);
+
+	}
+
+	// If the index matches, then we have found that we are in the file
+	if ( File_Block_index<0xFF0 ) {
+		//TODO call the read/write on the file location at counter
+		return;
+	}
 }
 
 /** Reads or writes a block of data from/to the physical device FLASH using a
@@ -467,21 +501,25 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 
 		case DISK_BLOCK_FATBlock1:
 		case DISK_BLOCK_FATBlock2:
-			if (FatBlock.Bootstrap[0] != 0x00) {
+			// If the fatblock is still at an intial state 
+			// (its never going to be a 5.25" floppy : P
+			if (FatBlock[1] != 0xFF) {
+				/* Cluster 0: Media type/Reserved */
+				UpdateFAT12ClusterEntry(BlockBuffer, 0, 0xF00 | BootBlock.MediaDescriptor);
+	
+				/* Cluster 1: Reserved */
+				UpdateFAT12ClusterEntry(BlockBuffer, 1, 0xFFF);
+	
+				/* Cluster 2 onwards: Cluster chain of FLASH.BIN */
+				UpdateFAT12ClusterChain(BlockBuffer, *FLASHFileStartCluster, FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES));
+	
+				/* Cluster 2+n onwards: Cluster chain of EEPROM.BIN */
+				UpdateFAT12ClusterChain(BlockBuffer, *EEPROMFileStartCluster, FILE_CLUSTERS(EEPROM_FILE_SIZE_BYTES));
+
+				memcpy(&FatBlock, BlockBuffer, sizeof(FATBootBlock_t));
+			} else {	
 				memcpy(BlockBuffer, &FatBlock, sizeof(FATBootBlock_t));
 			}
-			/* Cluster 0: Media type/Reserved */
-			UpdateFAT12ClusterEntry(BlockBuffer, 0, 0xF00 | BootBlock.MediaDescriptor);
-
-			/* Cluster 1: Reserved */
-			UpdateFAT12ClusterEntry(BlockBuffer, 1, 0xFFF);
-
-			/* Cluster 2 onwards: Cluster chain of FLASH.BIN */
-			UpdateFAT12ClusterChain(BlockBuffer, *FLASHFileStartCluster, FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES));
-
-			/* Cluster 2+n onwards: Cluster chain of EEPROM.BIN */
-			UpdateFAT12ClusterChain(BlockBuffer, *EEPROMFileStartCluster, FILE_CLUSTERS(EEPROM_FILE_SIZE_BYTES));
-
 			break;
 
 		case DISK_BLOCK_RootFilesBlock:

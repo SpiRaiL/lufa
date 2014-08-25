@@ -287,6 +287,8 @@
 			                                    const uint16_t StartIndex,
 			                                    const uint8_t ChainLength) AUX_BOOT_SECTION;
 
+			static uint16_t GetFatIndexValue(uint16_t BlockNumber);
+
 			static void ReadWriteDataBlock(const uint16_t BlockNumber,
 			                                    uint8_t* BlockBuffer,
 			                                    const bool Read) AUX_BOOT_SECTION;
