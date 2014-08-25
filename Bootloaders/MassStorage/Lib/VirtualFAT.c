@@ -72,6 +72,10 @@ static const FATBootBlock_t BootBlock =
 		.FilesystemIdentifier    = "FAT12   ",
 	};
 
+static const FATBootBlock_t FatBlock = {
+		.Bootstrap               = {0x00, 0x00, 0x00},
+};
+
 /** FAT 8.3 style directory entry, for the virtual FLASH contents file. */
 static FATDirectoryEntry_t FirmwareFileEntries[] =
 	{
@@ -256,13 +260,13 @@ static void UpdateFAT12ClusterEntry(uint8_t* const FATTable,
 	 * out FAT12 entry as required */
 	if (UpperNibble)
 	{
-		FATTable[FATOffset]     = (FATTable[FATOffset] & 0x0F) | ((ChainEntry & 0x0F) << 4);
-		FATTable[FATOffset + 1] = (ChainEntry >> 4);
+		FATTable[FATOffset]     = (FATTable[FATOffset] & 0xF0) | ((ChainEntry & 0x0F00) >> 8);
+		FATTable[FATOffset + 1] = (ChainEntry & 0x00FF);
 	}
 	else
 	{
-		FATTable[FATOffset]     = ChainEntry;
-		FATTable[FATOffset + 1] = (FATTable[FATOffset] & 0xF0) | (ChainEntry >> 8);
+		FATTable[FATOffset]     = (ChainEntry & 0x0FF0) >> 4;
+		FATTable[FATOffset + 1] = (FATTable[FATOffset] & 0x0F) | ((ChainEntry & 0x000F)<<4);
 	}
 }
 
@@ -291,6 +295,16 @@ static void UpdateFAT12ClusterChain(uint8_t* const FATTable,
 
 		UpdateFAT12ClusterEntry(FATTable, CurrentCluster, NextCluster);
 	}
+}
+
+static void ReadWriteDataBlock(const uint16_t BlockNumber,
+                                    uint8_t* BlockBuffer,
+                                    const bool Read)
+{
+	/* First see if we are trying to write to address flash file */
+	// get first FAT location of FLASH by looking at the pointer
+	uint16_t Fat_block_counter = 0;
+	uint16_t Fat_block_index = (*FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
 }
 
 /** Reads or writes a block of data from/to the physical device FLASH using a
@@ -412,6 +426,7 @@ void VirtualFAT_WriteBlock(const uint16_t BlockNumber)
 		case DISK_BLOCK_FATBlock1:
 		case DISK_BLOCK_FATBlock2:
 			/* Ignore writes to the boot and FAT blocks */
+			memcpy(&FatBlock, BlockBuffer, sizeof(FATBootBlock_t));
 
 			break;
 
@@ -452,6 +467,9 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 
 		case DISK_BLOCK_FATBlock1:
 		case DISK_BLOCK_FATBlock2:
+			if (FatBlock.Bootstrap[0] != 0x00) {
+				memcpy(BlockBuffer, &FatBlock, sizeof(FATBootBlock_t));
+			}
 			/* Cluster 0: Media type/Reserved */
 			UpdateFAT12ClusterEntry(BlockBuffer, 0, 0xF00 | BootBlock.MediaDescriptor);
 
