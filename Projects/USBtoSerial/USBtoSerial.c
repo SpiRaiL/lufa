@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -56,7 +56,7 @@ USB_ClassInfo_CDC_Device_t VirtualSerial_CDC_Interface =
 	{
 		.Config =
 			{
-				.ControlInterfaceNumber         = 0,
+				.ControlInterfaceNumber         = INTERFACE_ID_CDC_CCI,
 				.DataINEndpoint                 =
 					{
 						.Address                = CDC_TX_EPADDR,
@@ -133,8 +133,8 @@ int main(void)
 			}
 		}
 
-		/* Load the next byte from the USART transmit buffer into the USART */
-		if (!(RingBuffer_IsEmpty(&USBtoUSART_Buffer)))
+		/* Load the next byte from the USART transmit buffer into the USART if transmit buffer space is available */
+		if (Serial_IsSendReady() && !(RingBuffer_IsEmpty(&USBtoUSART_Buffer)))
 		  Serial_SendByte(RingBuffer_Remove(&USBtoUSART_Buffer));
 
 		CDC_Device_USBTask(&VirtualSerial_CDC_Interface);
@@ -194,7 +194,7 @@ ISR(USART1_RX_vect, ISR_BLOCK)
 {
 	uint8_t ReceivedByte = UDR1;
 
-	if (USB_DeviceState == DEVICE_STATE_Configured)
+	if ((USB_DeviceState == DEVICE_STATE_Configured) && !(RingBuffer_IsFull(&USARTtoUSB_Buffer)))
 	  RingBuffer_Insert(&USARTtoUSB_Buffer, ReceivedByte);
 }
 
@@ -232,6 +232,9 @@ void EVENT_CDC_Device_LineEncodingChanged(USB_ClassInfo_CDC_Device_t* const CDCI
 			break;
 	}
 
+	/* Keep the TX line held high (idle) while the USART is reconfigured */
+	PORTD |= (1 << 3);
+
 	/* Must turn off USART before reconfiguring it, otherwise incorrect operation may occur */
 	UCSR1B = 0;
 	UCSR1A = 0;
@@ -244,5 +247,8 @@ void EVENT_CDC_Device_LineEncodingChanged(USB_ClassInfo_CDC_Device_t* const CDCI
 	UCSR1C = ConfigMask;
 	UCSR1A = (1 << U2X1);
 	UCSR1B = ((1 << RXCIE1) | (1 << TXEN1) | (1 << RXEN1));
+
+	/* Release the TX line after the USART has been reconfigured */
+	PORTD &= ~(1 << 3);
 }
 

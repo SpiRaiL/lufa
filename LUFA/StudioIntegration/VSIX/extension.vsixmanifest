@@ -6,7 +6,7 @@
 		<Author>Dean Camera</Author>
 		<Version>0</Version>
 		<MoreInfoUrl>http://www.lufa-lib.org</MoreInfoUrl>
-		<Description xml:space="preserve">LUFA USB Framework</Description>
+		<Description xml:space="preserve">LUFA, the Lightweight USB Framework for AVRs.</Description>
 
 		<License>License.txt</License>
 		<Icon>LUFA_thumb.png</Icon>
@@ -14,6 +14,7 @@
 
 		<SupportedProducts>
 			<IsolatedShell Version="6.1">AtmelStudio</IsolatedShell>
+			<IsolatedShell Version="6.2">AtmelStudio</IsolatedShell>
 		</SupportedProducts>
 
 		<SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.5"/>

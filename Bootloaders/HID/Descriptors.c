@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -48,12 +48,12 @@ const USB_Descriptor_HIDReport_Datatype_t HIDReport[] =
 	HID_RI_USAGE_PAGE(16, 0xFFDC), /* Vendor Page 0xDC */
 	HID_RI_USAGE(8, 0xFB), /* Vendor Usage 0xFB */
 	HID_RI_COLLECTION(8, 0x01), /* Vendor Usage 1 */
-	    HID_RI_USAGE(8, 0x02), /* Vendor Usage 2 */
-	    HID_RI_LOGICAL_MINIMUM(8, 0x00),
-	    HID_RI_LOGICAL_MAXIMUM(8, 0xFF),
-	    HID_RI_REPORT_SIZE(8, 0x08),
-	    HID_RI_REPORT_COUNT(16, (sizeof(uint16_t) + SPM_PAGESIZE)),
-	    HID_RI_OUTPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE | HID_IOF_NON_VOLATILE),
+		HID_RI_USAGE(8, 0x02), /* Vendor Usage 2 */
+		HID_RI_LOGICAL_MINIMUM(8, 0x00),
+		HID_RI_LOGICAL_MAXIMUM(8, 0xFF),
+		HID_RI_REPORT_SIZE(8, 0x08),
+		HID_RI_REPORT_COUNT(16, (sizeof(uint16_t) + SPM_PAGESIZE)),
+		HID_RI_OUTPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE | HID_IOF_NON_VOLATILE),
 	HID_RI_END_COLLECTION(0),
 };
 
@@ -66,7 +66,7 @@ const USB_Descriptor_Device_t DeviceDescriptor =
 {
 	.Header                 = {.Size = sizeof(USB_Descriptor_Device_t), .Type = DTYPE_Device},
 
-	.USBSpecification       = VERSION_BCD(01.10),
+	.USBSpecification       = VERSION_BCD(1,1,0),
 	.Class                  = USB_CSCP_NoDeviceClass,
 	.SubClass               = USB_CSCP_NoDeviceSubclass,
 	.Protocol               = USB_CSCP_NoDeviceProtocol,
@@ -75,7 +75,7 @@ const USB_Descriptor_Device_t DeviceDescriptor =
 
 	.VendorID               = 0x03EB,
 	.ProductID              = 0x2067,
-	.ReleaseNumber          = VERSION_BCD(00.01),
+	.ReleaseNumber          = VERSION_BCD(0,0,1),
 
 	.ManufacturerStrIndex   = NO_DESCRIPTOR,
 	.ProductStrIndex        = NO_DESCRIPTOR,
@@ -110,7 +110,7 @@ const USB_Descriptor_Configuration_t ConfigurationDescriptor =
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_Interface},
 
-			.InterfaceNumber        = 0x00,
+			.InterfaceNumber        = INTERFACE_ID_Printer,
 			.AlternateSetting       = 0x00,
 
 			.TotalEndpoints         = 1,
@@ -126,7 +126,7 @@ const USB_Descriptor_Configuration_t ConfigurationDescriptor =
 		{
 			.Header                 = {.Size = sizeof(USB_HID_Descriptor_HID_t), .Type = HID_DTYPE_HID},
 
-			.HIDSpec                = VERSION_BCD(01.11),
+			.HIDSpec                = VERSION_BCD(1,1,1),
 			.CountryCode            = 0x00,
 			.TotalReportDescriptors = 1,
 			.HIDReportType          = HID_DTYPE_Report,

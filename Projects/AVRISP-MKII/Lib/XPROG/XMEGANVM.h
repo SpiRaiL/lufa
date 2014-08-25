@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -116,7 +116,8 @@
 		bool XMEGANVM_GetMemoryCRC(const uint8_t CRCCommand,
 			                       uint32_t* const CRCDest);
 		bool XMEGANVM_ReadMemory(const uint32_t ReadAddress,
-		                         uint8_t* ReadBuffer, uint16_t ReadSize);
+		                         uint8_t* ReadBuffer,
+		                         uint16_t ReadSize);
 		bool XMEGANVM_WriteByteMemory(const uint8_t WriteCommand,
 		                              const uint32_t WriteAddress,
 		                              const uint8_t Byte);

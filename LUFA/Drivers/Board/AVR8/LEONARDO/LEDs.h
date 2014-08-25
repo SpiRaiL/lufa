@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -98,9 +98,9 @@
 			static inline void LEDs_Init(void)
 			{
 				DDRB  |=  LEDS_PORTB_LEDS;
-				PORTB |=  LEDS_PORTB_LEDS;
+				PORTB &=  LEDS_PORTB_LEDS;
 				DDRD  |=  LEDS_PORTD_LEDS;
-				PORTD |=  LEDS_PORTD_LEDS;
+				PORTD &=  LEDS_PORTD_LEDS;
 				DDRC  |=  LEDS_PORTC_LEDS;
 				PORTC &= ~LEDS_PORTC_LEDS;
 			}
@@ -117,44 +117,44 @@
 
 			static inline void LEDs_TurnOnLEDs(const uint8_t LEDMask)
 			{
-				PORTB &= ~(LEDMask & LEDS_PORTB_LEDS);
-				PORTD &= ~(LEDMask & LEDS_PORTD_LEDS);
+				PORTB |=  (LEDMask & LEDS_PORTB_LEDS);
+				PORTD |=  (LEDMask & LEDS_PORTD_LEDS);
 				PORTC |=  (LEDMask & LEDS_PORTC_LEDS);
 			}
 
 			static inline void LEDs_TurnOffLEDs(const uint8_t LEDMask)
 			{
-				PORTB |=  (LEDMask & LEDS_PORTB_LEDS);
-				PORTD |=  (LEDMask & LEDS_PORTD_LEDS);
+				PORTB &= ~(LEDMask & LEDS_PORTB_LEDS);
+				PORTD &= ~(LEDMask & LEDS_PORTD_LEDS);
 				PORTC &= ~(LEDMask & LEDS_PORTC_LEDS);
 			}
 
 			static inline void LEDs_SetAllLEDs(const uint8_t LEDMask)
 			{
-				PORTB = ((PORTB |  LEDS_PORTB_LEDS) & ~(LEDMask & LEDS_PORTB_LEDS));
-				PORTD = ((PORTD |  LEDS_PORTD_LEDS) & ~(LEDMask & LEDS_PORTD_LEDS));
+				PORTB = ((PORTB & ~LEDS_PORTB_LEDS) |  (LEDMask & LEDS_PORTB_LEDS));
+				PORTD = ((PORTD & ~LEDS_PORTD_LEDS) |  (LEDMask & LEDS_PORTD_LEDS));
 				PORTC = ((PORTC & ~LEDS_PORTC_LEDS) |  (LEDMask & LEDS_PORTC_LEDS));
 			}
 
 			static inline void LEDs_ChangeLEDs(const uint8_t LEDMask,
 			                                   const uint8_t ActiveMask)
 			{
-				PORTB = ((PORTB |  (LEDMask & LEDS_PORTB_LEDS)) & ~(ActiveMask & LEDS_PORTB_LEDS));
-				PORTD = ((PORTD |  (LEDMask & LEDS_PORTD_LEDS)) & ~(ActiveMask & LEDS_PORTD_LEDS));
-				PORTC = ((PORTC & ~(LEDMask & LEDS_PORTC_LEDS)) |  (ActiveMask & LEDS_PORTC_LEDS));
+				PORTB = ((PORTB & ~(LEDMask & LEDS_PORTB_LEDS)) | (ActiveMask & LEDS_PORTB_LEDS));
+				PORTD = ((PORTD & ~(LEDMask & LEDS_PORTD_LEDS)) | (ActiveMask & LEDS_PORTD_LEDS));
+				PORTC = ((PORTC & ~(LEDMask & LEDS_PORTC_LEDS)) | (ActiveMask & LEDS_PORTC_LEDS));
 			}
 
 			static inline void LEDs_ToggleLEDs(const uint8_t LEDMask)
 			{
-				PINB  = (LEDMask & LEDS_PORTB_LEDS);
-				PIND  = (LEDMask & LEDS_PORTD_LEDS);
-				PINC  = (LEDMask & LEDS_PORTC_LEDS);
+				PORTB ^= (LEDMask & LEDS_PORTB_LEDS);
+				PORTD ^= (LEDMask & LEDS_PORTD_LEDS);
+				PORTC ^= (LEDMask & LEDS_PORTC_LEDS);
 			}
 
 			static inline uint8_t LEDs_GetLEDs(void) ATTR_WARN_UNUSED_RESULT;
 			static inline uint8_t LEDs_GetLEDs(void)
 			{
-				return ((PORTB & LEDS_PORTB_LEDS) | (PORTD & LEDS_PORTD_LEDS) | (~PORTC & LEDS_PORTC_LEDS));
+				return ((PORTB & LEDS_PORTB_LEDS) | (PORTD & LEDS_PORTD_LEDS) | (PORTC & LEDS_PORTC_LEDS));
 			}
 		#endif
 

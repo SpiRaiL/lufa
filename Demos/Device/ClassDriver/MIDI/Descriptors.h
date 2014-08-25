@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -77,15 +77,25 @@
 			USB_MIDI_Descriptor_Jack_Endpoint_t       MIDI_Out_Jack_Endpoint_SPC;
 		} USB_Descriptor_Configuration_t;
 
+		/** Enum for the device interface descriptor IDs within the device. Each interface descriptor
+		 *  should have a unique ID index associated with it, which can be used to refer to the
+		 *  interface from other descriptors.
+		 */
+		enum InterfaceDescriptors_t
+		{
+			INTERFACE_ID_AudioControl = 0, /**< Audio control interface descriptor ID */
+			INTERFACE_ID_AudioStream  = 1, /**< Audio streaming interface descriptor ID */
+		};
+
 		/** Enum for the device string descriptor IDs within the device. Each string descriptor should
 		 *  have a unique ID index associated with it, which can be used to refer to the string from
 		 *  other descriptors.
 		 */
 		enum StringDescriptors_t
 		{
-		    STRING_ID_Language      = 0, /**< Supported Languages string descriptor ID (must be zero) */
-		    STRING_ID_Manufacturer  = 1, /**< Manufacturer string ID */
-		    STRING_ID_Product       = 2, /**< Product string ID */
+			STRING_ID_Language     = 0, /**< Supported Languages string descriptor ID (must be zero) */
+			STRING_ID_Manufacturer = 1, /**< Manufacturer string ID */
+			STRING_ID_Product      = 2, /**< Product string ID */
 		};
 
 	/* Function Prototypes: */

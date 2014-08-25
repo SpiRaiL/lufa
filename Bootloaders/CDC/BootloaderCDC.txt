@@ -54,6 +54,25 @@
  *  When the bootloader is running, the board's LED(s) will flash at regular intervals to distinguish the
  *  bootloader from the normal user application.
  *
+ *  \warning <b>THIS BOOTLOADER IS NOT SECURE.</b> Malicious entities can recover written data, even if the device
+ *           lockbits are set.
+ *
+ *  \section Sec_Running Running the Bootloader
+ *
+ *  This bootloader is designed to be started via the HWB mechanism of the USB AVRs; ground the HWB pin (see device
+ *  datasheet) then momentarily ground /RESET to start the bootloader. This assumes the HWBE fuse is set and the BOOTRST
+ *  fuse is cleared.
+ *
+ *  For board specific exceptions to the above, see below.
+ *
+ *  \subsection SSec_XPLAIN Atmel Xplain Board
+ *  Ground the USB AVR JTAG's \c TCK pin to ground when powering on the board to start the bootloader. This assumes the
+ *  \c HWBE fuse is cleared and the \c BOOTRST fuse is set as the HWBE pin is not user accessible on this board.
+ *
+ *  \subsection SSec_Leonardo Arduino Leonardo Board
+ *  Ground \c IO13 when powering the board to start the bootloader. This assumes the \c HWBE fuse is cleared and the
+ *  \c BOOTRST fuse is set as the HWBE pin is not user accessible on this board.
+ *
  *  \section Sec_Installation Driver Installation
  *
  *  After running this bootloader for the first time on a new computer, you will need to supply the .INF
@@ -168,6 +187,8 @@
  *  this module to try to take control over inserted CDC devices, corrupting the
  *  datastream. A UDEV rule is required to prevent this.
  *  See <a href=https://groups.google.com/d/msg/lufa-support/CP9cy2bc8yo/kBqsOu-RBeMJ>here</a> for resolution steps.
+ *  If the issue still persists then uninstall modemmanager by executing <tt>sudo apt-get remove modemmanager</tt>, or
+ *  the equivalent using your chosen distribution's package manager.
  *
  *  \par On Linux machines, the CDC bootloader is inaccessible.
  *  On many Linux systems, non-root users do not have automatic access to newly

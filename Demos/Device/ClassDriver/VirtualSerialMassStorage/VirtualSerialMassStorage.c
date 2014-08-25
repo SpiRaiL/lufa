@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -44,7 +44,7 @@ USB_ClassInfo_CDC_Device_t VirtualSerial_CDC_Interface =
 	{
 		.Config =
 			{
-				.ControlInterfaceNumber         = 0,
+				.ControlInterfaceNumber         = INTERFACE_ID_CDC_CCI,
 				.DataINEndpoint                 =
 					{
 						.Address                = CDC_TX_EPADDR,
@@ -74,7 +74,7 @@ USB_ClassInfo_MS_Device_t Disk_MS_Interface =
 	{
 		.Config =
 			{
-				.InterfaceNumber                = 2,
+				.InterfaceNumber                = INTERFACE_ID_MassStorage,
 				.DataINEndpoint                 =
 					{
 						.Address                = MASS_STORAGE_IN_EPADDR,
@@ -92,7 +92,7 @@ USB_ClassInfo_MS_Device_t Disk_MS_Interface =
 	};
 
 /** Standard file stream for the CDC interface when set up, so that the virtual CDC COM port can be
- *  used like any regular character stream in the C APIs
+ *  used like any regular character stream in the C APIs.
  */
 static FILE USBSerialStream;
 

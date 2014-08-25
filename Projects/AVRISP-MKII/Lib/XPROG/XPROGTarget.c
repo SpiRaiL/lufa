@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -52,7 +52,7 @@ void XPROGTarget_EnableTargetPDI(void)
 
 	/* Set DATA line high for at least 90ns to disable /RESET functionality */
 	PORTD |= (1 << 3);
-	_delay_us(1);
+	_delay_us(100);
 
 	/* Set up the synchronous USART for XMEGA communications - 8 data bits, even parity, 2 stop bits */
 	UBRR1  = ((F_CPU / 2 / XPROG_HARDWARE_SPEED) - 1);
@@ -72,7 +72,7 @@ void XPROGTarget_EnableTargetTPI(void)
 	/* Set /RESET line low for at least 400ns to enable TPI functionality */
 	AUX_LINE_DDR  |=  AUX_LINE_MASK;
 	AUX_LINE_PORT &= ~AUX_LINE_MASK;
-	_delay_us(1);
+	_delay_us(100);
 
 	/* Set Tx and XCK as outputs, Rx as input */
 	DDRD |=  (1 << 5) | (1 << 3);

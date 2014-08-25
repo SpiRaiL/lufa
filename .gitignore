@@ -10,5 +10,6 @@
 *.bak
 *.class
 *.lst
+Documentation/
 LUFA/StudioIntegration/ProjectGenerator/*
 LUFA/StudioIntegration/DocBook/*

@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
   Copyright 2010  Matthias Hullin (lufa [at] matthias [dot] hullin [dot] net)
 
   Permission to use, copy, modify, distribute, and sell this
@@ -45,7 +45,7 @@ USB_ClassInfo_MS_Device_t Disk_MS_Interface =
 	{
 		.Config =
 			{
-				.InterfaceNumber           = 0,
+				.InterfaceNumber           = INTERFACE_ID_MassStorage,
 				.DataINEndpoint            =
 					{
 						.Address           = MASS_STORAGE_IN_EPADDR,
@@ -73,7 +73,7 @@ USB_ClassInfo_HID_Device_t Keyboard_HID_Interface =
  	{
 		.Config =
 			{
-				.InterfaceNumber              = 1,
+				.InterfaceNumber              = INTERFACE_ID_Keyboard,
 				.ReportINEndpoint             =
 					{
 						.Address              = KEYBOARD_EPADDR,

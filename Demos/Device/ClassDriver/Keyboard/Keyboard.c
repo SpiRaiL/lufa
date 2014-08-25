@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -44,10 +44,10 @@ static uint8_t PrevKeyboardHIDReportBuffer[sizeof(USB_KeyboardReport_Data_t)];
  *  within a device can be differentiated from one another.
  */
 USB_ClassInfo_HID_Device_t Keyboard_HID_Interface =
- 	{
+	{
 		.Config =
 			{
-				.InterfaceNumber              = 0,
+				.InterfaceNumber              = INTERFACE_ID_Keyboard,
 				.ReportINEndpoint             =
 					{
 						.Address              = KEYBOARD_EPADDR,
@@ -57,7 +57,7 @@ USB_ClassInfo_HID_Device_t Keyboard_HID_Interface =
 				.PrevReportINBuffer           = PrevKeyboardHIDReportBuffer,
 				.PrevReportINBufferSize       = sizeof(PrevKeyboardHIDReportBuffer),
 			},
-    };
+	};
 
 
 /** Main program entry point. This routine contains the overall program flow, including initial

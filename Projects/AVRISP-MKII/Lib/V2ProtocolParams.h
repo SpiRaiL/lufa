@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -62,7 +62,7 @@
 		#if (!defined(FIRMWARE_VERSION_MINOR) || defined(__DOXYGEN__))
 			/** Minor firmware version, reported to the host on request; must match the version
 			 *  the host is expecting, or it (may) reject further communications with the programmer. */
-			#define FIRMWARE_VERSION_MINOR   0x16
+			#define FIRMWARE_VERSION_MINOR   0x17
 		#endif
 
 	/* Type Defines: */

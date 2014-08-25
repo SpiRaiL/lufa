@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -243,9 +243,9 @@ void EVENT_USB_Device_ControlRequest(void)
 
 #if !defined(NO_BLOCK_SUPPORT)
 /** Reads or writes a block of EEPROM or FLASH memory to or from the appropriate CDC data endpoint, depending
- *  on the AVR910 protocol command issued.
+ *  on the AVR109 protocol command issued.
  *
- *  \param[in] Command  Single character AVR910 protocol command indicating what memory operation to perform
+ *  \param[in] Command  Single character AVR109 protocol command indicating what memory operation to perform
  */
 static void ReadWriteMemoryBlock(const uint8_t Command)
 {
@@ -409,7 +409,7 @@ static void WriteNextResponseByte(const uint8_t Response)
 	Endpoint_Write_8(Response);
 }
 
-/** Task to read in AVR910 commands from the CDC data OUT endpoint, process them, perform the required actions
+/** Task to read in AVR109 commands from the CDC data OUT endpoint, process them, perform the required actions
  *  and send the appropriate response back to the host.
  */
 static void CDC_Task(void)

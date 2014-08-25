@@ -45,7 +45,10 @@ MSHELP_GEN_PARAMS   := --stringparam generate.toc "book toc"                \
                        --stringparam root.filename "LUFA"                   \
                        --stringparam html.stylesheet "lufa_studio_help_styling.css"
 
-all: generate_xml check_filenames generate_vsix
+all: clear_project_dirs generate_xml check_filenames generate_vsix
+
+clear_project_dirs:
+	@make -s -C $(LUFA_ROOT)/.. clean
 
 clean:
 	@rm -f $(TEMP_MANIFEST_XML) $(MODULE_OUTPUT_XML) $(EXTENSION_OUTPUT_XML) $(DOXYGEN_TAG_FILE_XML) $(DOXYGEN_COMBINED_XML) $(MSHELP_OUTPUT_XML)
@@ -124,7 +127,7 @@ check_filenames: $(MODULE_OUTPUT_XML)
 		echo "Checking $$f..."; \
 		asf_file_dir=`dirname $$f`; \
 		xsltproc XDK/lufa_filelist_transform.xslt $$f | sed -e "/^$$/d" | while read -r i; do \
-			if ( ! test -f "$$asf_file_dir/$$i" ); then \
+			if ( ( ! test -f "$$asf_file_dir/$$i" ) && ( ! test -d "$$asf_file_dir/$$i" ) ); then \
 				echo "Source file \"$$i\" referenced in $$f does not exist!"; \
 				exit 1; \
 			fi; \

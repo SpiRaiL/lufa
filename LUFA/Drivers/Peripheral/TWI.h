@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -66,6 +66,8 @@
 	/* Includes: */
 		#if (ARCH == ARCH_AVR8)
 			#include "AVR8/TWI_AVR8.h"
+		#elif (ARCH == ARCH_XMEGA)
+			#include "XMEGA/TWI_XMEGA.h"
 		#else
 			#error The TWI peripheral driver is not currently available for your selected architecture.
 		#endif

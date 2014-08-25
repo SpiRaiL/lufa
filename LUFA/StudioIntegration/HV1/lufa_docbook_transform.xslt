@@ -742,6 +742,18 @@
 		</emphasis>
 	</xsl:template>
 
+	<xsl:template match="highlight[1]/text()">
+		<xsl:choose>
+			<xsl:when test="substring(., 1, 1) = '*'">
+				<xsl:value-of select="substring(., 2)"/>
+			</xsl:when>
+
+			<xsl:otherwise>
+				<xsl:value-of select="."/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+
 	<xsl:template match="sp[ancestor::codeline]">
 		<xsl:text> </xsl:text>
 	</xsl:template>

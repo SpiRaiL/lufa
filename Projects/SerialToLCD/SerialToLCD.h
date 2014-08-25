@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
   Copyright 2012  Simon Foster (simon.foster [at] inbox [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
@@ -37,28 +37,28 @@
 #ifndef _SERIALTOLCD_H_
 #define _SERIALTOLCD_H_
 
-    /* Includes: */
-        #include <avr/io.h>
-        #include <avr/wdt.h>
-        #include <avr/interrupt.h>
-        #include <avr/power.h>
+	/* Includes: */
+		#include <avr/io.h>
+		#include <avr/wdt.h>
+		#include <avr/interrupt.h>
+		#include <avr/power.h>
 
-        #include "Descriptors.h"
+		#include "Descriptors.h"
 		#include "Lib/HD44780.h"
 
-        #include <LUFA/Version.h>
-        #include <LUFA/Drivers/Misc/RingBuffer.h>
-        #include <LUFA/Drivers/USB/USB.h>
+		#include <LUFA/Version.h>
+		#include <LUFA/Drivers/Misc/RingBuffer.h>
+		#include <LUFA/Drivers/USB/USB.h>
 		#include <LUFA/Platform/Platform.h>
 
 	/* Macros: */
 		#define COMMAND_ESCAPE     0x1B
 
-    /* Function Prototypes: */
-        void SetupHardware(void);
+	/* Function Prototypes: */
+		void SetupHardware(void);
 
-        void EVENT_USB_Device_ConfigurationChanged(void);
-        void EVENT_USB_Device_ControlRequest(void);
+		void EVENT_USB_Device_ConfigurationChanged(void);
+		void EVENT_USB_Device_ControlRequest(void);
 
 #endif
 

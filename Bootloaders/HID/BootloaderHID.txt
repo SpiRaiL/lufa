@@ -48,13 +48,22 @@
  *
  *  This bootloader enumerates to the host as a HID Class device, allowing for device FLASH programming through
  *  the supplied command line software, which is a modified version of Paul's TeensyHID Command Line loader code
- *  from PJRC (used with permission). This bootloader is deliberatley non-compatible with the properietary PJRC
+ *  from PJRC (used with permission). This bootloader is deliberately non-compatible with the proprietary PJRC
  *  HalfKay bootloader GUI; only the command line interface software accompanying this bootloader will work with it.
  *
  *  Out of the box this bootloader builds for the AT90USB1287 with an 8KB bootloader section size, and will fit
  *  into 2KB of bootloader space for the Series 2 USB AVRs (ATMEGAxxU2, AT90USBxx2) or 4KB of bootloader space for
  *  all other models. If you wish to alter this size and/or change the AVR model, you will need to edit the MCU,
  *  FLASH_SIZE_KB and BOOT_SECTION_SIZE_KB values in the accompanying makefile.
+ *
+ *  \warning <b>THIS BOOTLOADER IS NOT SECURE.</b> Malicious entities can recover written data, even if the device
+ *           lockbits are set.
+ *
+ *  \section Sec_Running Running the Bootloader
+ *
+ *  This bootloader is designed to be started via the HWB mechanism of the USB AVRs; ground the HWB pin (see device
+ *  datasheet) then momentarily ground /RESET to start the bootloader. This assumes the HWBE fuse is set and the BOOTRST
+ *  fuse is cleared.
  *
  *  \section Sec_Installation Driver Installation
  *

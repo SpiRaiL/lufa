@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -51,8 +51,17 @@
 			// Generic HID Interface
 			USB_Descriptor_Interface_t            HID_Interface;
 			USB_HID_Descriptor_HID_t              HID_VendorHID;
-	        USB_Descriptor_Endpoint_t             HID_ReportINEndpoint;
+			USB_Descriptor_Endpoint_t             HID_ReportINEndpoint;
 		} USB_Descriptor_Configuration_t;
+
+		/** Enum for the device interface descriptor IDs within the device. Each interface descriptor
+		 *  should have a unique ID index associated with it, which can be used to refer to the
+		 *  interface from other descriptors.
+		 */
+		enum InterfaceDescriptors_t
+		{
+			INTERFACE_ID_Printer = 0, /**< Printer interface descriptor ID */
+		};
 
 	/* Macros: */
 		/** Endpoint address of the HID data IN endpoint. */

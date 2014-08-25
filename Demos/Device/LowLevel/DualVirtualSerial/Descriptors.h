@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -102,15 +102,27 @@
 			USB_Descriptor_Endpoint_t                CDC2_DataInEndpoint;
 		} USB_Descriptor_Configuration_t;
 
+		/** Enum for the device interface descriptor IDs within the device. Each interface descriptor
+		 *  should have a unique ID index associated with it, which can be used to refer to the
+		 *  interface from other descriptors.
+		 */
+		enum InterfaceDescriptors_t
+		{
+			INTERFACE_ID_CDC1_CCI = 0, /**< CDC1 CCI interface descriptor ID */
+			INTERFACE_ID_CDC1_DCI = 1, /**< CDC1 DCI interface descriptor ID */
+			INTERFACE_ID_CDC2_CCI = 2, /**< CDC2 CCI interface descriptor ID */
+			INTERFACE_ID_CDC2_DCI = 3, /**< CDC2 DCI interface descriptor ID */
+		};
+
 		/** Enum for the device string descriptor IDs within the device. Each string descriptor should
 		 *  have a unique ID index associated with it, which can be used to refer to the string from
 		 *  other descriptors.
 		 */
 		enum StringDescriptors_t
 		{
-		    STRING_ID_Language      = 0, /**< Supported Languages string descriptor ID (must be zero) */
-		    STRING_ID_Manufacturer  = 1, /**< Manufacturer string ID */
-		    STRING_ID_Product       = 2, /**< Product string ID */
+			STRING_ID_Language     = 0, /**< Supported Languages string descriptor ID (must be zero) */
+			STRING_ID_Manufacturer = 1, /**< Manufacturer string ID */
+			STRING_ID_Product      = 2, /**< Product string ID */
 		};
 
 	/* Function Prototypes: */

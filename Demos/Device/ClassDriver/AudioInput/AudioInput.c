@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -44,8 +44,8 @@ USB_ClassInfo_Audio_Device_t Microphone_Audio_Interface =
 	{
 		.Config =
 			{
-				.ControlInterfaceNumber   = 0,
-				.StreamingInterfaceNumber = 1,
+				.ControlInterfaceNumber   = INTERFACE_ID_AudioControl,
+				.StreamingInterfaceNumber = INTERFACE_ID_AudioStream,
 				.DataINEndpoint           =
 					{
 						.Address          = AUDIO_STREAM_EPADDR,

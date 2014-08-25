@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2013.
+     Copyright (C) Dean Camera, 2014.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2013  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -47,7 +47,7 @@ USB_ClassInfo_HID_Device_t Device_HID_Interface =
 	{
 		.Config =
 			{
-				.InterfaceNumber              = 0,
+				.InterfaceNumber              = INTERFACE_ID_KeyboardAndMouse,
 				.ReportINEndpoint             =
 					{
 						.Address              = HID_IN_EPADDR,
@@ -108,13 +108,13 @@ void SetupHardware()
 /** Event handler for the library USB Connection event. */
 void EVENT_USB_Device_Connect(void)
 {
-    LEDs_SetAllLEDs(LEDMASK_USB_ENUMERATING);
+	LEDs_SetAllLEDs(LEDMASK_USB_ENUMERATING);
 }
 
 /** Event handler for the library USB Disconnection event. */
 void EVENT_USB_Device_Disconnect(void)
 {
-    LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
+	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
 }
 
 /** Event handler for the library USB Configuration Changed event. */
