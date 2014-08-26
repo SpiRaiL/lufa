@@ -47,7 +47,7 @@
 		#define EEPROM_FILE_SIZE_BYTES    E2END
 
 		/** Number of sectors that comprise a single logical disk cluster. */
-		#define SECTOR_PER_CLUSTER        4
+		#define SECTOR_PER_CLUSTER        1
 
 		/** Size of a single logical sector on the disk. */
 		#define SECTOR_SIZE_BYTES         512
@@ -287,7 +287,7 @@
 			                                    const uint16_t StartIndex,
 			                                    const uint8_t ChainLength) AUX_BOOT_SECTION;
 
-			static uint16_t GetFatIndexValue(uint16_t BlockNumber);
+			static uint16_t GetFatIndexValue(uint8_t* const FATTable, uint16_t Index);
 
 			static void ReadWriteDataBlock(const uint16_t BlockNumber,
 			                                    uint8_t* BlockBuffer,
@@ -304,5 +304,7 @@
 
 		void VirtualFAT_WriteBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
 		void VirtualFAT_ReadBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
+	
+#define LOG_FAT_LOOKUP(Address, Data) eeprom_update_byte(Address, Data);
 
 #endif
