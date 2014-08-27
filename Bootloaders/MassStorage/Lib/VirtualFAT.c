@@ -334,26 +334,31 @@ static void ReadWriteDataBlock(const uint16_t BlockNumber,
 	// BlockNumber is a Sector number. Apparently?
 	// TODO. 
 	// Get the Cluster number and secttor-inblock number using mod and div
-	const uint16_t Reffered_FatIndex = BlockNumber-DISK_BLOCK_DataStartBlock+2;	
+	const uint16_t Reffered_FatSector = BlockNumber-DISK_BLOCK_DataStartBlock;	
+
+	const uint16_t Reffered_FatIndex = (Reffered_FatSector / SECTOR_PER_CLUSTER) + 2;
+	const uint16_t Sector_in_cluster = Reffered_FatSector % SECTOR_PER_CLUSTER;
 	/* First see if we are trying to write to address flash file */
 	// get first FAT location of FLASH by looking at the pointer
 	uint16_t File_Block_counter = 0; /*< Steps through the percieved file space */
 	uint16_t FileBlock_FatIndex = (*FLASHFileStartCluster);
 
 	if (Read) LOG_FAT_LOOKUP(ee++, 'r') else LOG_FAT_LOOKUP(ee++, 'W')
+	//LOG_FAT_LOOKUP(ee++, Reffered_FatIndex);
+	LOG_FAT_LOOKUP(ee++, BlockNumber);
 	LOG_FAT_LOOKUP(ee++, Reffered_FatIndex);
 
-	while ( (FileBlock_FatIndex<0xFF0) && (FileBlock_FatIndex != Reffered_FatIndex) )	   {
+	while ( WITHIN_FAT(FileBlock_FatIndex) && (FileBlock_FatIndex != Reffered_FatIndex) )	   {
 		File_Block_counter++;
 		FileBlock_FatIndex = GetFatIndexValue(FatBlock, FileBlock_FatIndex);
 
 	}
 
 	// If the index matches, then we have found that we are in the file
-	if ( FileBlock_FatIndex<0xFF0 ) {
+	if WITHIN_FAT(FileBlock_FatIndex) {
 		if (Read) LOG_FAT_LOOKUP(ee++, 'f') else LOG_FAT_LOOKUP(ee++, 'F')
 		LOG_FAT_LOOKUP(ee++, File_Block_counter);
-		ReadWriteFLASHFileBlock(File_Block_counter,BlockBuffer,Read);
+		ReadWriteFLASHFileBlock(File_Block_counter * SECTOR_PER_CLUSTER + Sector_in_cluster,BlockBuffer,Read);
 		return;
 	}
 
@@ -361,16 +366,16 @@ static void ReadWriteDataBlock(const uint16_t BlockNumber,
 	File_Block_counter = 0;
 	FileBlock_FatIndex = (*EEPROMFileStartCluster );
 
-	while ( (FileBlock_FatIndex<0xFF0) && (FileBlock_FatIndex != Reffered_FatIndex) )	   {
+	while ( WITHIN_FAT(FileBlock_FatIndex) && (FileBlock_FatIndex != Reffered_FatIndex) )	   {
 		File_Block_counter++;
 		FileBlock_FatIndex = GetFatIndexValue(FatBlock, FileBlock_FatIndex);
 	}
 
 	// If the index matches, then we have found that we are in the file
-	if ( FileBlock_FatIndex<0xFF0 ) {
+	if WITHIN_FAT(FileBlock_FatIndex) {
 		if (Read) LOG_FAT_LOOKUP(ee++, 'e') else LOG_FAT_LOOKUP(ee++, 'E')
 		LOG_FAT_LOOKUP(ee++, File_Block_counter);
-		ReadWriteEEPROMFileBlock(File_Block_counter,BlockBuffer,Read);
+		ReadWriteEEPROMFileBlock(File_Block_counter * SECTOR_PER_CLUSTER + Sector_in_cluster,BlockBuffer,Read);
 		return;
 	}
 }
@@ -491,23 +496,24 @@ void VirtualFAT_WriteBlock(const uint16_t BlockNumber)
 	switch (BlockNumber)
 	{
 		case DISK_BLOCK_BootBlock:
+			break;
 		case DISK_BLOCK_FATBlock1:
 		case DISK_BLOCK_FATBlock2:
 			/* Ignore writes to the boot and FAT blocks */
 			memcpy(FatBlock, BlockBuffer, sizeof(FATBootBlock_t));
 
+			//ReadWriteEEPROMFileBlock(0, BlockBuffer, false);
 			break;
 
 		case DISK_BLOCK_RootFilesBlock:
 			/* Copy over the updated directory entries */
-			memcpy(FirmwareFileEntries, BlockBuffer, sizeof(FirmwareFileEntries));
-			//memcpy(RootBlock, BlockBuffer, sizeof(RootBlock));
+			//memcpy(FirmwareFileEntries, BlockBuffer, sizeof(FirmwareFileEntries));
+			memcpy(RootBlock, BlockBuffer, sizeof(RootBlock));
 
+			//ReadWriteEEPROMFileBlock(1, BlockBuffer, false);
 			break;
 
 		default:
-			//ReadWriteFLASHFileBlock(BlockNumber, BlockBuffer, false);
-			//ReadWriteEEPROMFileBlock(BlockNumber, BlockBuffer, false);
 			ReadWriteDataBlock(BlockNumber, BlockBuffer, false);
 
 			break;
@@ -521,6 +527,24 @@ void VirtualFAT_WriteBlock(const uint16_t BlockNumber)
  */
 void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 {
+	static uint8_t vfat_init = 0;
+	if (vfat_init == 0) {
+		vfat_init = 1;
+		/* Cluster 0: Media type/Reserved */
+		UpdateFAT12ClusterEntry(FatBlock, 0, 0xF00 | BootBlock.MediaDescriptor);
+
+		/* Cluster 1: Reserved */
+		UpdateFAT12ClusterEntry(FatBlock, 1, 0xFFF);
+
+		/* Cluster 2 onwards: Cluster chain of FLASH.BIN */
+		UpdateFAT12ClusterChain(FatBlock, *FLASHFileStartCluster, FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES));
+
+		/* Cluster 2+n onwards: Cluster chain of EEPROM.BIN */
+		UpdateFAT12ClusterChain(FatBlock, *EEPROMFileStartCluster, FILE_CLUSTERS(EEPROM_FILE_SIZE_BYTES));
+
+		memcpy(RootBlock, FirmwareFileEntries, sizeof(FirmwareFileEntries));
+	}
+
 	uint8_t BlockBuffer[SECTOR_SIZE_BYTES];
 	memset(BlockBuffer, 0x00, sizeof(BlockBuffer));
 
@@ -537,36 +561,16 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 
 		case DISK_BLOCK_FATBlock1:
 		case DISK_BLOCK_FATBlock2:
-			// If the fatblock is still at an intial state 
-			if (FatBlock[0] == 0) {
-				/* Cluster 0: Media type/Reserved */
-				UpdateFAT12ClusterEntry(FatBlock, 0, 0xF00 | BootBlock.MediaDescriptor);
-	
-				/* Cluster 1: Reserved */
-				UpdateFAT12ClusterEntry(FatBlock, 1, 0xFFF);
-	
-				/* Cluster 2 onwards: Cluster chain of FLASH.BIN */
-				UpdateFAT12ClusterChain(FatBlock, *FLASHFileStartCluster, FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES));
-	
-				/* Cluster 2+n onwards: Cluster chain of EEPROM.BIN */
-				UpdateFAT12ClusterChain(FatBlock, *EEPROMFileStartCluster, FILE_CLUSTERS(EEPROM_FILE_SIZE_BYTES));
-
-			}
 			memcpy(BlockBuffer, FatBlock, sizeof(FatBlock));
 			break;
 
 		case DISK_BLOCK_RootFilesBlock:
-			//if (RootBlock[0] == 0) {
-			//	memcpy(RootBlock, FirmwareFileEntries, sizeof(FirmwareFileEntries));
-			//}
 			//memcpy(BlockBuffer, RootBlock, sizeof(RootBlock));
 			memcpy(BlockBuffer, FirmwareFileEntries, sizeof(FirmwareFileEntries));
 
 			break;
 
 		default:
-			//ReadWriteFLASHFileBlock(BlockNumber, BlockBuffer, true);
-			//ReadWriteEEPROMFileBlock(BlockNumber, BlockBuffer, true);
 			ReadWriteDataBlock(BlockNumber, BlockBuffer, true);
 			break;
 	}

@@ -44,10 +44,10 @@
 		#define FLASH_FILE_SIZE_BYTES     (FLASHEND - (FLASHEND - BOOT_START_ADDR) - AUX_BOOT_SECTION_SIZE)
 
 		/** Size of the virtual EEPROM.BIN file in bytes. */
-		#define EEPROM_FILE_SIZE_BYTES    E2END
+		#define EEPROM_FILE_SIZE_BYTES    E2END+1
 
 		/** Number of sectors that comprise a single logical disk cluster. */
-		#define SECTOR_PER_CLUSTER        1
+		#define SECTOR_PER_CLUSTER        4
 
 		/** Size of a single logical sector on the disk. */
 		#define SECTOR_SIZE_BYTES         512
@@ -304,6 +304,8 @@
 
 		void VirtualFAT_WriteBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
 		void VirtualFAT_ReadBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
+
+#define WITHIN_FAT(X) ((X>=0x2) && (X<=0xFEF))
 	
 //#define LOG_FAT_LOGIC_TO_EEPROM 
 #ifdef LOG_FAT_LOGIC_TO_EEPROM 
