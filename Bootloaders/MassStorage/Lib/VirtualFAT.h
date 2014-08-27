@@ -305,6 +305,11 @@
 		void VirtualFAT_WriteBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
 		void VirtualFAT_ReadBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
 	
-#define LOG_FAT_LOOKUP(Address, Data) eeprom_update_byte(Address, Data);
+//#define LOG_FAT_LOGIC_TO_EEPROM 
+#ifdef LOG_FAT_LOGIC_TO_EEPROM 
+	#define LOG_FAT_LOOKUP(Address, Data) eeprom_update_byte(Address, Data);
+#else
+	#define LOG_FAT_LOOKUP(Address, Data) {;}
+#endif
 
 #endif

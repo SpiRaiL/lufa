@@ -322,7 +322,9 @@ static void UpdateFAT12ClusterChain(uint8_t* const FATTable,
 	}
 }
 
-static uint16_t ee = 0;
+#ifdef LOG_FAT_LOGIC_TO_EEPROM 
+	static uint16_t ee = 0;
+#endif
 
 static void ReadWriteDataBlock(const uint16_t BlockNumber,
                                     uint8_t* BlockBuffer,
@@ -332,7 +334,7 @@ static void ReadWriteDataBlock(const uint16_t BlockNumber,
 	// BlockNumber is a Sector number. Apparently?
 	// TODO. 
 	// Get the Cluster number and secttor-inblock number using mod and div
-	const uint16_t Reffered_FatIndex = BlockNumber-DISK_BLOCK_DataStartBlock;	
+	const uint16_t Reffered_FatIndex = BlockNumber-DISK_BLOCK_DataStartBlock+2;	
 	/* First see if we are trying to write to address flash file */
 	// get first FAT location of FLASH by looking at the pointer
 	uint16_t File_Block_counter = 0; /*< Steps through the percieved file space */
@@ -368,7 +370,7 @@ static void ReadWriteDataBlock(const uint16_t BlockNumber,
 	if ( FileBlock_FatIndex<0xFF0 ) {
 		if (Read) LOG_FAT_LOOKUP(ee++, 'e') else LOG_FAT_LOOKUP(ee++, 'E')
 		LOG_FAT_LOOKUP(ee++, File_Block_counter);
-		//ReadWriteEEPROMFileBlock(File_Block_counter,BlockBuffer,Read);
+		ReadWriteEEPROMFileBlock(File_Block_counter,BlockBuffer,Read);
 		return;
 	}
 }
