@@ -73,8 +73,8 @@ static const FATBootBlock_t BootBlock =
 	};
 
 // Blank fat block, will be used to buffer
-static const uint8_t FatBlock[SECTOR_SIZE_BYTES];
-static const uint8_t RootBlock[SECTOR_SIZE_BYTES];
+static uint8_t FatBlock[SECTOR_SIZE_BYTES];
+static uint8_t RootBlock[SECTOR_SIZE_BYTES];
 //FatBlock[0] = 0;
 
 /** FAT 8.3 style directory entry, for the virtual FLASH contents file. */
@@ -530,6 +530,12 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 	static uint8_t vfat_init = 0;
 	if (vfat_init == 0) {
 		vfat_init = 1;
+		//Reserve the start of the fat block
+		for(uint16_t i=2; i<32; i++) {
+			FatBlock[i]=0xFF;
+			UpdateFAT12ClusterEntry(FatBlock, i, 0xFF0 | BootBlock.MediaDescriptor);
+		};
+
 		/* Cluster 0: Media type/Reserved */
 		UpdateFAT12ClusterEntry(FatBlock, 0, 0xF00 | BootBlock.MediaDescriptor);
 
