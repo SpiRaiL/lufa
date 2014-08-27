@@ -8,5 +8,5 @@ for i in range(0,1664):
 
 # should be 64
 f = open('eeprom.bin', 'w')
-for i in range(0,56):
+for i in range(0,64):
     f.write("E%014.0f\n" % (i))

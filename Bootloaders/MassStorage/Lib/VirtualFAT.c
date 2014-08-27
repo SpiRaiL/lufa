@@ -37,7 +37,7 @@
 
 #define  INCLUDE_FROM_VIRTUAL_FAT_C
 #include "VirtualFAT.h"
-#include "../MassStorage_customisations.h"
+//#include "../MassStorage_customisations.h"
 
 /** FAT filesystem boot sector block, must be the first sector on the physical
  *  disk so that the host can identify the presence of a FAT filesystem. This
@@ -57,7 +57,7 @@ static const FATBootBlock_t BootBlock =
 		.SectorsPerCluster       = SECTOR_PER_CLUSTER,
 		.ReservedSectors         = 1,
 		.FATCopies               = 2,
-		.RootDirectoryEntries    = (SECTOR_SIZE_BYTES / sizeof(FATDirectoryEntry_t)),
+		.RootDirectoryEntries    = 16, //(SECTOR_SIZE_BYTES / sizeof(FATDirectoryEntry_t)),
 		.TotalSectors16          = LUN_MEDIA_BLOCKS,
 		.MediaDescriptor         = 0xF8,
 		.SectorsPerFAT           = 1,
@@ -139,7 +139,7 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 					.Reserved        = {0},
 					.CreationTime    = FAT_TIME(1, 1, 0),
 					.CreationDate    = FAT_DATE(16, 1, 1989),
-					.StartingCluster = 0x02,
+					.StartingCluster = 0x03,
 					.FileSizeBytes   = FLASH_FILE_SIZE_BYTES,
 				}
 		},
@@ -181,7 +181,7 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 					.Reserved        = {0},
 					.CreationTime    = FAT_TIME(1, 1, 0),
 					.CreationDate    = FAT_DATE(16, 1, 1983),
-					.StartingCluster = 0x02 + FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES),
+					.StartingCluster = 0x03 + FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES),
 					.FileSizeBytes   = EEPROM_FILE_SIZE_BYTES,
 				}
 		},
@@ -234,7 +234,7 @@ static uint8_t ReadEEPROMByte(const uint8_t* const Address)
 static void WriteEEPROMByte(uint8_t* const Address,
                             const uint8_t Data)
 {
-	 CUSTOMISATION_WRITE_PROTECTION;
+	 //CUSTOMISATION_WRITE_PROTECTION;
 	 eeprom_update_byte(Address, Data);
 }
 
