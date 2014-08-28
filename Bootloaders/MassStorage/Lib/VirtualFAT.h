@@ -40,17 +40,18 @@
 		#include "../BootloaderAPI.h"
 
 	/* Macros: */
+		/** Size of a single logical sector on the disk. */
+		#define SECTOR_SIZE_BYTES         512
+
 		/** Size of the virtual FLASH.BIN file in bytes. */
-		#define FLASH_FILE_SIZE_BYTES     (FLASHEND - (FLASHEND - BOOT_START_ADDR) - AUX_BOOT_SECTION_SIZE)
+		#define FLASH_FILE_SIZE_BYTES     (FLASHEND - (FLASHEND - BOOT_START_ADDR) - AUX_BOOT_SECTION_SIZE + SECTOR_SIZE_BYTES )
 
 		/** Size of the virtual EEPROM.BIN file in bytes. */
-		#define EEPROM_FILE_SIZE_BYTES    E2END+1
+		#define EEPROM_FILE_SIZE_BYTES    (E2END + 1 + SECTOR_SIZE_BYTES)
 
 		/** Number of sectors that comprise a single logical disk cluster. */
 		#define SECTOR_PER_CLUSTER        4
 
-		/** Size of a single logical sector on the disk. */
-		#define SECTOR_SIZE_BYTES         512
 
 		/** Size of a logical cluster on the disk, in bytes */
 		#define CLUSTER_SIZE_BYTES        (SECTOR_PER_CLUSTER * SECTOR_SIZE_BYTES)
@@ -185,6 +186,15 @@
 			DISK_BLOCK_DataStartBlock     = 4,
 		};
 
+		/** Write enable enums */
+		enum
+		{
+			/** Flash write enable state */
+			WRITE_ignore_all = 0,
+			WRITE_enabled_flash = 1,	
+			WRITE_enabled_eeprom = 2,	
+		};
+
 	/* Type Definitions: */
 		/** FAT boot block structure definition, used to identify the core
 		 *  parameters of a FAT file system stored on a disk.
@@ -287,12 +297,6 @@
 			                                    const uint16_t StartIndex,
 			                                    const uint8_t ChainLength) AUX_BOOT_SECTION;
 
-			static uint16_t GetFatIndexValue(uint8_t* const FATTable, uint16_t Index);
-
-			static void ReadWriteDataBlock(const uint16_t BlockNumber,
-			                                    uint8_t* BlockBuffer,
-			                                    const bool Read) AUX_BOOT_SECTION;
-
 			static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber,
 			                                    uint8_t* BlockBuffer,
 			                                    const bool Read) AUX_BOOT_SECTION;
@@ -304,14 +308,6 @@
 
 		void VirtualFAT_WriteBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
 		void VirtualFAT_ReadBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
-
-#define WITHIN_FAT(X) ((X>=0x2) && (X<=0xFEF))
-	
-//#define LOG_FAT_LOGIC_TO_EEPROM 
-#ifdef LOG_FAT_LOGIC_TO_EEPROM 
-	#define LOG_FAT_LOOKUP(Address, Data) eeprom_update_byte(Address, Data);
-#else
-	#define LOG_FAT_LOOKUP(Address, Data) {;}
-#endif
+		uint8_t Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer);
 
 #endif
