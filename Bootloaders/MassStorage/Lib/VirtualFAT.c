@@ -468,7 +468,7 @@ void VirtualFAT_WriteBlock(const uint16_t BlockNumber)
 			if (write_protection == WRITE_enabled_flash)
 				ReadWriteFLASHFileBlock(BlockNumber-1, BlockBuffer, false);
 
-			if (!write_protection == WRITE_enabled_eeprom)
+			if (write_protection == WRITE_enabled_eeprom)
 				ReadWriteEEPROMFileBlock(BlockNumber-1, BlockBuffer, false);
 
 			break;
@@ -482,7 +482,7 @@ void VirtualFAT_WriteBlock(const uint16_t BlockNumber)
  */
 void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 {
-	write_protection = WRITE_ignore_all;
+	//write_protection = WRITE_ignore_all;
 
 	uint8_t BlockBuffer[SECTOR_SIZE_BYTES];
 	memset(BlockBuffer, 0x00, sizeof(BlockBuffer));
