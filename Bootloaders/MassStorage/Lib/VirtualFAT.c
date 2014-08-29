@@ -39,7 +39,6 @@
 #include "VirtualFAT.h"
 //#include "../MassStorage_customisations.h"
 
-static uint8_t write_protection = WRITE_ignore_all;
 
 /** FAT filesystem boot sector block, must be the first sector on the physical
  *  disk so that the host can identify the presence of a FAT filesystem. This
@@ -295,20 +294,33 @@ static void UpdateFAT12ClusterChain(uint8_t* const FATTable,
 	}
 }
 
-uint8_t Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
-	/** Reads the first 8 bytes of the sector and checks for the file name*/
-	if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.Filename, BlockBuffer, 11)==0 ) {
-		/* pre-Assigns the starting cluster Since the OS will only do this after all the data has been written */
-		(*FLASHFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
-		/* Enables writting to the flash */
-		return WRITE_enabled_flash;
-	}
-	if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_EEPROM_MSDOS].MSDOS_File.Filename, BlockBuffer, 11)==0 ) {
-		(*EEPROMFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
-		return WRITE_enabled_eeprom;
-	}
+static uint8_t write_protection = WRITE_ignore_all;
 
-	return WRITE_ignore_all;
+/** Checks for a change in what needs to be written to. 
+Returns true of there is a change */
+static uint8_t Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
+
+	// Check for write to flash
+	if ((write_protection == WRITE_ignore_all ) || (write_protection == WRITE_enabled_eeprom )) {
+		/** Reads the first 8 bytes of the sector and checks for the file name*/
+		if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.Filename, BlockBuffer, 11)==0 ) {
+			/* pre-Assigns the starting cluster Since the OS will only do this after all the data has been written */
+			(*FLASHFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
+			/* Enables writting to the flash */
+			write_protection = WRITE_enabled_flash;
+			return true;
+		}
+	}
+	
+	// Check for write to EEPROM
+	if ((write_protection == WRITE_ignore_all) || (write_protection == WRITE_enabled_flash )) {
+		if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_EEPROM_MSDOS].MSDOS_File.Filename, BlockBuffer, 11)==0 ) {
+			(*EEPROMFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
+			write_protection =  WRITE_enabled_eeprom;
+			return true;
+		}
+	}
+	return false;
 }
 
 /** Reads or writes a block of data from/to the physical device FLASH using a
@@ -436,22 +448,27 @@ void VirtualFAT_WriteBlock(const uint16_t BlockNumber)
 		case DISK_BLOCK_FATBlock1:
 		case DISK_BLOCK_FATBlock2:
 			/* Ignore writes to the boot and FAT blocks */
+			write_protection = WRITE_ignore_all;
 
 			break;
 
 		case DISK_BLOCK_RootFilesBlock:
 			/* Copy over the updated directory entries */
-			memcpy(FirmwareFileEntries, BlockBuffer, sizeof(FirmwareFileEntries));
+			//memcpy(FirmwareFileEntries, BlockBuffer, sizeof(FirmwareFileEntries));
+			write_protection = WRITE_ignore_all;
 
 			break;
 
 		default:
-			if (write_protection == WRITE_ignore_all)
-				write_protection = Check_for_WriteEnable(BlockNumber, BlockBuffer);
+			/* if the write target is changed, we need to drop the first sector
+			(since it contains the write command)
+			The next sector to write will be passed to the write functions */
+			if (Check_for_WriteEnable(BlockNumber, BlockBuffer)) break;
+
 			if (write_protection == WRITE_enabled_flash)
 				ReadWriteFLASHFileBlock(BlockNumber-1, BlockBuffer, false);
 
-			if (write_protection == WRITE_enabled_eeprom)
+			if (!write_protection == WRITE_enabled_eeprom)
 				ReadWriteEEPROMFileBlock(BlockNumber-1, BlockBuffer, false);
 
 			break;

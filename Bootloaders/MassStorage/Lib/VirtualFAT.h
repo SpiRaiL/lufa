@@ -308,6 +308,6 @@
 
 		void VirtualFAT_WriteBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
 		void VirtualFAT_ReadBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
-		uint8_t Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer);
+		static uint8_t Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer);
 
 #endif

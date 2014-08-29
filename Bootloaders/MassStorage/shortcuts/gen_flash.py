@@ -11,7 +11,7 @@ for i in range(0,(512-13)):
 f.write("\n")
 
 for i in range(0,1664):
-    f.write("F%014.0f\n" % (i))
+    f.write("Q%014.0f\n" % (i))
 
 # should be 64
 f = open('eeprom.bin', 'w')
@@ -23,4 +23,4 @@ for i  in range(0,(512-13)):
 
 f.write("\n")
 for i in range(0,64):
-    f.write("E%014.0f\n" % (i))
+    f.write("X%014.0f\n" % (i))
