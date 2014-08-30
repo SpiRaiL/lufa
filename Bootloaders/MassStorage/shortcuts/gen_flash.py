@@ -1,26 +1,28 @@
 #!/bin/python
 
-#should be 1664?
-f = open('flash.bin', 'w')
+import datetime
+time = datetime.datetime.now().strftime("%H:%M:%S")
+
+f = open('CLOCK.APP', 'w')
 #should be 1664?
 
 #write header
-f.write("CLOCK_82BIN\n")
+f.write("CLOCK   APP\n")
 for i in range(0,(512-13)):
     f.write(".")
 f.write("\n")
 
 for i in range(0,1664):
-    f.write("Q%014.0f\n" % (i))
+    f.write("F %s %04d\n" % (time, i))
 
 # should be 64
-f = open('eeprom.bin', 'w')
+f = open('CONFIG.TXT', 'w')
 
 #write header
-f.write("SETTINGSCON\n")
+f.write("CONFIG  TXT\n")
 for i  in range(0,(512-13)):
     f.write(".")
 
 f.write("\n")
 for i in range(0,64):
-    f.write("X%014.0f\n" % (i))
+    f.write("E %s %04d\n" % (time, i))

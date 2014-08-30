@@ -106,20 +106,20 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 					.Reserved1       = 0,
 					.Reserved2       = 0,
 
-					.Checksum        = FAT_CHECKSUM('C','L','O','C','K','_','8','2','B','I','N'),
+					.Checksum        = FAT_CHECKSUM('C','L','O','C','K','.','A','P','P',0,0),
 
 					.Unicode1        = 'C',
 					.Unicode2        = 'L',
 					.Unicode3        = 'O',
 					.Unicode4        = 'C',
 					.Unicode5        = 'K',
-					.Unicode6        = '_',
-					.Unicode7        = '8',
-					.Unicode8        = '2',
-					.Unicode9        = '.',
-					.Unicode10       = 'B',
-					.Unicode11       = 'I',
-					.Unicode12       = 'N',
+					.Unicode6        = '.',
+					.Unicode7        = 'A',
+					.Unicode8        = 'P',
+					.Unicode9        = 'P',
+					.Unicode10       = 0,
+					.Unicode11       = 0,
+					.Unicode12       = 0,
 					.Unicode13       = 0,
 				}
 		},
@@ -129,12 +129,12 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 		{
 			.MSDOS_File =
 				{
-					.Filename        = "CLOCK_82",
-					.Extension       = "BIN",
+					.Filename        = "CLOCK   ",
+					.Extension       = "APP",
 					.Attributes      = 0,
 					.Reserved        = {0},
 					.CreationTime    = FAT_TIME(1, 1, 0),
-					.CreationDate    = FAT_DATE(16, 1, 1989),
+					.CreationDate    = FAT_DATE(16, 1, 1983),
 					.StartingCluster = 2,
 					.FileSizeBytes   = FLASH_FILE_SIZE_BYTES,
 				}
@@ -149,20 +149,20 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 					.Reserved1       = 0,
 					.Reserved2       = 0,
 
-					.Checksum        = FAT_CHECKSUM('S','E','T','T','I','N','G','S','C','O','N'),
+					.Checksum        = FAT_CHECKSUM('C','O','N','F','I','G','.','T','X','T',0),
 
-					.Unicode1        = 'S',
-					.Unicode2        = 'E',
-					.Unicode3        = 'T',
-					.Unicode4        = 'T',
+					.Unicode1        = 'C',
+					.Unicode2        = 'O',
+					.Unicode3        = 'N',
+					.Unicode4        = 'F',
 					.Unicode5        = 'I',
-					.Unicode6        = 'N',
-					.Unicode7        = 'G',
-					.Unicode8        = 'S',
-					.Unicode9        = '.',
-					.Unicode10       = 'C',
-					.Unicode11       = 'O',
-					.Unicode12       = 'N',
+					.Unicode6        = 'G',
+					.Unicode7        = '.',
+					.Unicode8        = 'T',
+					.Unicode9        = 'X',
+					.Unicode10       = 'T',
+					.Unicode11       = 0,
+					.Unicode12       = 0,
 					.Unicode13       = 0,
 				}
 		},
@@ -171,8 +171,8 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 		{
 			.MSDOS_File =
 				{
-					.Filename        = "SETTINGS",
-					.Extension       = "CON",
+					.Filename        = "CONFIG  ",
+					.Extension       = "TXT",
 					.Attributes      = 0,
 					.Reserved        = {0},
 					.CreationTime    = FAT_TIME(1, 1, 0),
@@ -295,31 +295,34 @@ static void UpdateFAT12ClusterChain(uint8_t* const FATTable,
 }
 
 static uint8_t write_protection = WRITE_ignore_all;
+static uint16_t write_start_block = 0;
 
 /** Checks for a change in what needs to be written to. 
 Returns true of there is a change */
-static uint8_t Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
+static bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
 
 	// Check for write to flash
-	if ((write_protection == WRITE_ignore_all ) || (write_protection == WRITE_enabled_eeprom )) {
+	//if ((write_protection == WRITE_ignore_all ) || (write_protection == WRITE_enabled_eeprom )) {
 		/** Reads the first 8 bytes of the sector and checks for the file name*/
 		if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.Filename, BlockBuffer, 11)==0 ) {
 			/* pre-Assigns the starting cluster Since the OS will only do this after all the data has been written */
-			(*FLASHFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
+			//(*FLASHFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
+			write_start_block = BlockNumber+1;
 			/* Enables writting to the flash */
 			write_protection = WRITE_enabled_flash;
 			return true;
 		}
-	}
+	//}
 	
 	// Check for write to EEPROM
-	if ((write_protection == WRITE_ignore_all) || (write_protection == WRITE_enabled_flash )) {
+	//if ((write_protection == WRITE_ignore_all) || (write_protection == WRITE_enabled_flash )) {
 		if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_EEPROM_MSDOS].MSDOS_File.Filename, BlockBuffer, 11)==0 ) {
-			(*EEPROMFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
+			//(*EEPROMFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
+			write_start_block = BlockNumber+1;
 			write_protection =  WRITE_enabled_eeprom;
 			return true;
 		}
-	}
+	//}
 	return false;
 }
 
@@ -336,15 +339,21 @@ static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber,
                                     uint8_t* BlockBuffer,
                                     const bool Read)
 {
-	uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock + (*FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
+	uint16_t FileStartBlock;
+	if (Read) FileStartBlock = DISK_BLOCK_DataStartBlock + (*FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
+	else FileStartBlock = write_start_block;
+
 	uint16_t FileEndBlock   = FileStartBlock + (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) - 1);
 
 	/* Range check the write request - abort if requested block is not within the
 	 * virtual firmware file sector range */
-	if (!((BlockNumber >= FileStartBlock) && (BlockNumber <= FileEndBlock))) return;
+	if (!((BlockNumber >= FileStartBlock) && (BlockNumber < FileEndBlock))) {
+		if(!Read) write_protection = WRITE_ignore_all;
+		return;
+	}
 
 	// Last sector in file, re-enables write protection
-	if (BlockNumber == FileEndBlock-1) write_protection = WRITE_ignore_all;
+	//if (BlockNumber == FileEndBlock-1) write_protection = WRITE_ignore_all;
 
 	#if (FLASHEND > 0xFFFF)
 	uint32_t FlashAddress = (uint32_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
@@ -402,15 +411,22 @@ static void ReadWriteEEPROMFileBlock(const uint16_t BlockNumber,
                                      uint8_t* BlockBuffer,
                                      const bool Read)
 {
-	uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock + (*EEPROMFileStartCluster - 2) * SECTOR_PER_CLUSTER;
+	
+	uint16_t FileStartBlock;
+	if (Read) FileStartBlock = DISK_BLOCK_DataStartBlock + (*EEPROMFileStartCluster - 2) * SECTOR_PER_CLUSTER;
+	else FileStartBlock = write_start_block;
+	
 	uint16_t FileEndBlock   = FileStartBlock + (FILE_SECTORS(EEPROM_FILE_SIZE_BYTES) - 1);
 
 	/* Range check the write request - abort if requested block is not within the
 	 * virtual firmware file sector range */
-	if (!((BlockNumber >= FileStartBlock) && (BlockNumber <= FileEndBlock))) return;
+	if (!((BlockNumber >= FileStartBlock) && (BlockNumber < FileEndBlock))) {
+		if(!Read) write_protection = WRITE_ignore_all;
+		return;
+	}
 
 	// Last sector in file, re-enables write protection
-	if (BlockNumber == FileEndBlock-1) write_protection = WRITE_ignore_all;
+	//if (BlockNumber == FileEndBlock-1) write_protection = WRITE_ignore_all;
 
 	uint16_t EEPROMAddress = (uint16_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
 
@@ -448,14 +464,14 @@ void VirtualFAT_WriteBlock(const uint16_t BlockNumber)
 		case DISK_BLOCK_FATBlock1:
 		case DISK_BLOCK_FATBlock2:
 			/* Ignore writes to the boot and FAT blocks */
-			write_protection = WRITE_ignore_all;
+			//write_protection = WRITE_ignore_all;
 
 			break;
 
 		case DISK_BLOCK_RootFilesBlock:
 			/* Copy over the updated directory entries */
 			//memcpy(FirmwareFileEntries, BlockBuffer, sizeof(FirmwareFileEntries));
-			write_protection = WRITE_ignore_all;
+			//write_protection = WRITE_ignore_all;
 
 			break;
 
@@ -463,13 +479,14 @@ void VirtualFAT_WriteBlock(const uint16_t BlockNumber)
 			/* if the write target is changed, we need to drop the first sector
 			(since it contains the write command)
 			The next sector to write will be passed to the write functions */
-			if (Check_for_WriteEnable(BlockNumber, BlockBuffer)) break;
+			if (Check_for_WriteEnable(BlockNumber, BlockBuffer) ) return;
 
 			if (write_protection == WRITE_enabled_flash)
-				ReadWriteFLASHFileBlock(BlockNumber-1, BlockBuffer, false);
+				ReadWriteFLASHFileBlock(BlockNumber, BlockBuffer, false);
 
 			if (write_protection == WRITE_enabled_eeprom)
-				ReadWriteEEPROMFileBlock(BlockNumber-1, BlockBuffer, false);
+				ReadWriteEEPROMFileBlock(BlockNumber, BlockBuffer, false);
+
 
 			break;
 	}
