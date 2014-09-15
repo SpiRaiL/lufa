@@ -35,6 +35,7 @@
  *  host PC.
  */
 
+
 #define  INCLUDE_FROM_VIRTUAL_FAT_C
 #include "VirtualFAT.h"
 //#include "../MassStorage_customisations.h"
@@ -50,7 +51,7 @@
  *        must be added to the very end of the block to identify it as a boot
  *        block.
  */
-static const FATBootBlock_t BootBlock =
+static FATBootBlock_t BootBlock =
 	{
 		.Bootstrap               = {0xEB, 0x3C, 0x90},
 		.Description             = "mkdosfs",
@@ -69,7 +70,7 @@ static const FATBootBlock_t BootBlock =
 		.PhysicalDriveNum        = 0,
 		.ExtendedBootRecordSig   = 0x29,
 		.VolumeSerialNumber      = 0x12345678,
-		.VolumeLabel             = "CLOCKCLOCK ",
+		.VolumeLabel             = "BOOT_LOADER",
 		.FilesystemIdentifier    = "FAT12   ",
 	};
 
@@ -294,17 +295,75 @@ static void UpdateFAT12ClusterChain(uint8_t* const FATTable,
 	}
 }
 
+/** General plan
+ * EEPROM:
+ * BOOT_LOADER
+ * Vol  11 \n
+ * root
+ * flash
+ * eeprom
+ *
+ *
+ * 1. if Eeprom = volume (Else just use defaults)
+ * Copy From EEPROM
+ *		Vol Label, root dir, file1,file2 
+ *		Calc lfn checksums: 
+ * 2. Data in:
+ *		as currently specified
+ *
+ * LFN
+ *		for (sum = i = 0; i < 11; i++) { sum = (((sum & 1) << 7) | ((sum & 0xfe) >> 1)) + name[i]; }
+ */
+void Setup_bootLoader_from_EEPROM() {
+#define EEPROM_SETTINGS_BUFFER_SIZE 24
+	uint8_t buffer[EEPROM_SETTINGS_BUFFER_SIZE];
+#define EE_GET_CONFIG 0
+#define EE_ROOT_LABEL 12
+//#define EE_FLASH_LABEL 24
+//#define EE_EEPROM_LABEL 36
+
+	// Read eeprom chars into buffer
+	for(uint8_t ei=0;ei<=EEPROM_SETTINGS_BUFFER_SIZE;ei++) {
+		buffer[ei] = ReadEEPROMByte(&ei); 
+	}
+
+	// If the first 11 bytes says "BOOTLOADER" we are going to 
+	// take the config of the bootloader from the eeprom
+	if ( memcmp( &buffer[EE_GET_CONFIG], BootBlock.VolumeLabel, EE_LABEL_SIZE)==0) {
+		// Replace volume label with root dir name
+		memcpy(BootBlock.VolumeLabel, 
+				&buffer[EE_ROOT_LABEL], 
+				EE_LABEL_SIZE);
+
+		// Also make it the name of the root directory
+		memcpy(FirmwareFileEntries[DISK_FILE_ENTRY_VolumeID].MSDOS_File.Filename, 
+				&buffer[EE_ROOT_LABEL], 
+				EE_LABEL_SIZE);
+
+//		// SET the flash file name
+//		memcpy(FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.Filename, 
+//				&buffer[EE_FLASH_LABEL], 
+//				EE_LABEL_SIZE);
+//
+//		// set the EEPROM file name
+//		memcpy(FirmwareFileEntries[DISK_FILE_ENTRY_EEPROM_MSDOS].MSDOS_File.Filename, 
+//				&buffer[EE_FLASH_LABEL], 
+//				EE_LABEL_SIZE);
+
+	}
+}
+
 static uint8_t write_protection = WRITE_ignore_all;
 static uint16_t write_start_block = 0;
 
 /** Checks for a change in what needs to be written to. 
 Returns true of there is a change */
-static bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
+bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
 
 	// Check for write to flash
 	//if ((write_protection == WRITE_ignore_all ) || (write_protection == WRITE_enabled_eeprom )) {
 		/** Reads the first 8 bytes of the sector and checks for the file name*/
-		if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.Filename, BlockBuffer, 11)==0 ) {
+		if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.Filename, BlockBuffer, EE_LABEL_SIZE )==0 ) {
 			/* pre-Assigns the starting cluster Since the OS will only do this after all the data has been written */
 			//(*FLASHFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
 			write_start_block = BlockNumber+1;
@@ -316,7 +375,7 @@ static bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuff
 	
 	// Check for write to EEPROM
 	//if ((write_protection == WRITE_ignore_all) || (write_protection == WRITE_enabled_flash )) {
-		if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_EEPROM_MSDOS].MSDOS_File.Filename, BlockBuffer, 11)==0 ) {
+		if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_EEPROM_MSDOS].MSDOS_File.Filename, BlockBuffer, EE_LABEL_SIZE)==0 ) {
 			//(*EEPROMFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
 			write_start_block = BlockNumber+1;
 			write_protection =  WRITE_enabled_eeprom;
@@ -507,6 +566,8 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 	switch (BlockNumber)
 	{
 		case DISK_BLOCK_BootBlock:
+			Setup_bootLoader_from_EEPROM();
+			
 			memcpy(BlockBuffer, &BootBlock, sizeof(FATBootBlock_t));
 
 			/* Add the magic signature to the end of the block */
