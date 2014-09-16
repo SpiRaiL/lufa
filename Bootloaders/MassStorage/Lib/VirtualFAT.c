@@ -366,7 +366,16 @@ bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
 			write_protection = WRITE_enabled_flash;
 			return true;
 		}
-	//}
+
+		/* We did not match the flash, but we are uploading a big "upgrade" file and we found the next
+		 * flash file. ie: the model is correct, but the address was wrong */
+		if (  memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_VolumeID].MSDOS_Directory.Name, 
+					BlockBuffer, EE_LABEL_SIZE-2 )==0 
+
+				) {
+			write_protection = WRITE_ignore_all;
+			return true;
+		}
 	
 	// Check for write to EEPROM
 	//if ((write_protection == WRITE_ignore_all) || (write_protection == WRITE_enabled_flash )) {

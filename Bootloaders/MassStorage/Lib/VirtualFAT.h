@@ -308,7 +308,7 @@
 
 		void VirtualFAT_WriteBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
 		void VirtualFAT_ReadBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
-		bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer);
+		bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) AUX_BOOT_SECTION;
 		
 		void Setup_bootLoader_from_EEPROM(void) AUX_BOOT_SECTION;
 
