@@ -51,7 +51,7 @@ BOOT_API_LD_FLAGS    += $(call BOOT_SECTION_LD_FLAG, .apitable_signatures,  Boot
 ifeq ($(BOOT_SECTION_SIZE_KB),8)
   CC_FLAGS           += -DAUX_BOOT_SECTION_SIZE=0
 else
-  AUX_BOOT_SECTION_SIZE_KB = (6 - $(BOOT_SECTION_SIZE_KB))
+  AUX_BOOT_SECTION_SIZE_KB = (8 - $(BOOT_SECTION_SIZE_KB))
 
   CC_FLAGS           += -DAUX_BOOT_SECTION_SIZE='($(AUX_BOOT_SECTION_SIZE_KB) * 1024)'
   LD_FLAGS           += -Wl,--section-start=.boot_aux=$(call BOOT_SEC_OFFSET, (($(BOOT_SECTION_SIZE_KB) + $(AUX_BOOT_SECTION_SIZE_KB)) * 1024 - 16))

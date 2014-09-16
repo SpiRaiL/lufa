@@ -73,7 +73,7 @@
 		#define FILE_CLUSTERS(size)       ((size / CLUSTER_SIZE_BYTES) + ((size % CLUSTER_SIZE_BYTES) ? 1 : 0))
 
 		/** Total number of logical sectors/blocks on the disk. */
-		#define LUN_MEDIA_BLOCKS          (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) + FILE_SECTORS(EEPROM_FILE_SIZE_BYTES) + 32) * 4
+		#define LUN_MEDIA_BLOCKS          (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) + FILE_SECTORS(EEPROM_FILE_SIZE_BYTES) + 32) * 16
 
 		/** Converts a given time in HH:MM:SS format to a FAT filesystem time.
 		 *

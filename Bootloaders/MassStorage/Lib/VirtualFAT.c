@@ -85,7 +85,7 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 		{
 			.MSDOS_Directory =
 				{
-					.Name            = "CLOCKCLOCK ",
+					.Name            = "NO_CONFIG  ",
 					.Attributes      = FAT_FLAG_VOLUME_NAME,
 					.Reserved        = {0},
 					.CreationTime    = 0,
@@ -107,17 +107,17 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 					.Reserved1       = 0,
 					.Reserved2       = 0,
 
-					.Checksum        = FAT_CHECKSUM('C','L','O','C','K','.','A','P','P',0,0),
+					.Checksum        = FAT_CHECKSUM('F','L','A','S','H',' ',' ',' ','B','I','N'),
 
-					.Unicode1        = 'C',
+					.Unicode1        = 'F',
 					.Unicode2        = 'L',
-					.Unicode3        = 'O',
-					.Unicode4        = 'C',
-					.Unicode5        = 'K',
+					.Unicode3        = 'A',
+					.Unicode4        = 'S',
+					.Unicode5        = 'H',
 					.Unicode6        = '.',
-					.Unicode7        = 'A',
-					.Unicode8        = 'P',
-					.Unicode9        = 'P',
+					.Unicode7        = 'B',
+					.Unicode8        = 'I',
+					.Unicode9        = 'N',
 					.Unicode10       = 0,
 					.Unicode11       = 0,
 					.Unicode12       = 0,
@@ -130,8 +130,8 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 		{
 			.MSDOS_File =
 				{
-					.Filename        = "CLOCK   ",
-					.Extension       = "APP",
+					.Filename        = "FLASH   ",
+					.Extension       = "BIN",
 					.Attributes      = 0,
 					.Reserved        = {0},
 					.CreationTime    = FAT_TIME(1, 1, 0),
@@ -150,18 +150,18 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 					.Reserved1       = 0,
 					.Reserved2       = 0,
 
-					.Checksum        = FAT_CHECKSUM('C','O','N','F','I','G','.','T','X','T',0),
+					.Checksum        = FAT_CHECKSUM('E','E','P','R','O','M',' ',' ','B','I','N'),
 
-					.Unicode1        = 'C',
-					.Unicode2        = 'O',
-					.Unicode3        = 'N',
-					.Unicode4        = 'F',
-					.Unicode5        = 'I',
-					.Unicode6        = 'G',
+					.Unicode1        = 'E',
+					.Unicode2        = 'E',
+					.Unicode3        = 'P',
+					.Unicode4        = 'R',
+					.Unicode5        = 'O',
+					.Unicode6        = 'M',
 					.Unicode7        = '.',
-					.Unicode8        = 'T',
-					.Unicode9        = 'X',
-					.Unicode10       = 'T',
+					.Unicode8        = 'B',
+					.Unicode9        = 'I',
+					.Unicode10       = 'N',
 					.Unicode11       = 0,
 					.Unicode12       = 0,
 					.Unicode13       = 0,
@@ -172,8 +172,8 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 		{
 			.MSDOS_File =
 				{
-					.Filename        = "CONFIG  ",
-					.Extension       = "TXT",
+					.Filename        = "EEPROM  ",
+					.Extension       = "BIN",
 					.Attributes      = 0,
 					.Reserved        = {0},
 					.CreationTime    = FAT_TIME(1, 1, 0),
@@ -300,19 +300,14 @@ static void UpdateFAT12ClusterChain(uint8_t* const FATTable,
  * BOOT_LOADER
  * Vol  11 \n
  * root
- * flash
- * eeprom
  *
  *
  * 1. if Eeprom = volume (Else just use defaults)
  * Copy From EEPROM
- *		Vol Label, root dir, file1,file2 
- *		Calc lfn checksums: 
+ *		Vol Label, root dir, 
  * 2. Data in:
  *		as currently specified
  *
- * LFN
- *		for (sum = i = 0; i < 11; i++) { sum = (((sum & 1) << 7) | ((sum & 0xfe) >> 1)) + name[i]; }
  */
 void Setup_bootLoader_from_EEPROM() {
 #define EEPROM_SETTINGS_BUFFER_SIZE 24
@@ -323,32 +318,24 @@ void Setup_bootLoader_from_EEPROM() {
 //#define EE_EEPROM_LABEL 36
 
 	// Read eeprom chars into buffer
-	for(uint8_t ei=0;ei<=EEPROM_SETTINGS_BUFFER_SIZE;ei++) {
-		buffer[ei] = ReadEEPROMByte(&ei); 
+	for(uint16_t ei=0;ei<EEPROM_SETTINGS_BUFFER_SIZE;ei++) {
+		buffer[ei] = ReadEEPROMByte((uint8_t*)ei); 
+		//buffer[ei] = '0' + ei;
 	}
 
 	// If the first 11 bytes says "BOOTLOADER" we are going to 
 	// take the config of the bootloader from the eeprom
 	if ( memcmp( &buffer[EE_GET_CONFIG], BootBlock.VolumeLabel, EE_LABEL_SIZE)==0) {
+	//if (1) {
 		// Replace volume label with root dir name
 		memcpy(BootBlock.VolumeLabel, 
 				&buffer[EE_ROOT_LABEL], 
 				EE_LABEL_SIZE);
 
 		// Also make it the name of the root directory
-		memcpy(FirmwareFileEntries[DISK_FILE_ENTRY_VolumeID].MSDOS_File.Filename, 
-				&buffer[EE_ROOT_LABEL], 
+		memcpy(FirmwareFileEntries[DISK_FILE_ENTRY_VolumeID].MSDOS_Directory.Name,
+				&buffer[EE_ROOT_LABEL],
 				EE_LABEL_SIZE);
-
-//		// SET the flash file name
-//		memcpy(FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.Filename, 
-//				&buffer[EE_FLASH_LABEL], 
-//				EE_LABEL_SIZE);
-//
-//		// set the EEPROM file name
-//		memcpy(FirmwareFileEntries[DISK_FILE_ENTRY_EEPROM_MSDOS].MSDOS_File.Filename, 
-//				&buffer[EE_FLASH_LABEL], 
-//				EE_LABEL_SIZE);
 
 	}
 }
@@ -362,8 +349,16 @@ bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
 
 	// Check for write to flash
 	//if ((write_protection == WRITE_ignore_all ) || (write_protection == WRITE_enabled_eeprom )) {
-		/** Reads the first 8 bytes of the sector and checks for the file name*/
-		if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.Filename, BlockBuffer, EE_LABEL_SIZE )==0 ) {
+		if (  
+			/** Reads the first 8 bytes of the sector and checks for the file name*/
+				memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.Filename, 
+					BlockBuffer, EE_LABEL_SIZE )==0 
+		||
+			/** OR check if the name matches the root directory (used in multi controller models)*/
+				memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_VolumeID].MSDOS_Directory.Name, 
+					BlockBuffer, EE_LABEL_SIZE )==0 
+
+				) {
 			/* pre-Assigns the starting cluster Since the OS will only do this after all the data has been written */
 			//(*FLASHFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
 			write_start_block = BlockNumber+1;
@@ -566,6 +561,7 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 	switch (BlockNumber)
 	{
 		case DISK_BLOCK_BootBlock:
+
 			Setup_bootLoader_from_EEPROM();
 			
 			memcpy(BlockBuffer, &BootBlock, sizeof(FATBootBlock_t));
