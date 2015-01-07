@@ -38,7 +38,7 @@
 
 #define  INCLUDE_FROM_VIRTUAL_FAT_C
 #include "VirtualFAT.h"
-//#include "../MassStorage_customisations.h"
+#include "../MassStorage_customisations.h"
 
 
 /** FAT filesystem boot sector block, must be the first sector on the physical
@@ -603,7 +603,8 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 			break;
 
 		default:
-			ReadWriteFLASHFileBlock(BlockNumber-1, BlockBuffer, true);
+			IF_NOT_READ_PROTECTED(ReadWriteFLASHFileBlock(BlockNumber-1, BlockBuffer, true));
+
 			ReadWriteEEPROMFileBlock(BlockNumber-1, BlockBuffer, true);
 
 			break;

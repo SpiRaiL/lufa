@@ -7,6 +7,9 @@ Since the code is THIS file is practicually useless for anything else: The code 
 
 #define CUSTOMISATION_ENABLED
 #ifdef CUSTOMISATION_ENABLED
+
+#define IF_NOT_READ_PROTECTED(X) //X; //comment or uncomment the X to enable/disable
+
 #include <avr/io.h>
 
 #define LED_INIT DDRD|=(1<<PD5);

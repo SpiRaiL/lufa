@@ -34,8 +34,8 @@
  */
 
 #define  INCLUDE_FROM_BOOTLOADER_MASSSTORAGE_C
-#include "BootloaderMassStorage.h"
 #include "MassStorage_customisations.h"
+#include "BootloaderMassStorage.h"
 
 /** LUFA Mass Storage Class driver interface configuration and state information. This structure is
  *  passed to all Mass Storage Class driver functions, so that multiple instances of the same class
