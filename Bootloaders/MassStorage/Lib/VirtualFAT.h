@@ -161,14 +161,6 @@
 		{
 			/** Volume ID directory entry, giving the name of the virtual disk. */
 			DISK_FILE_ENTRY_VolumeID      = 0,
-			/** Long File Name FAT file entry of the virtual FLASH.BIN image file. */
-			DISK_FILE_ENTRY_FLASH_LFN     = 1,
-			/** Legacy MSDOS FAT file entry of the virtual FLASH.BIN image file. */
-			DISK_FILE_ENTRY_FLASH_MSDOS   = 2,
-			/** Long File Name FAT file entry of the virtual EEPROM.BIN image file. */
-			DISK_FILE_ENTRY_EEPROM_LFN    = 3,
-			/** Legacy MSDOS FAT file entry of the virtual EEPROM.BIN image file. */
-			DISK_FILE_ENTRY_EEPROM_MSDOS  = 4,
 		};
 
 		/** Enum for the physical disk blocks of the virtual disk. */
