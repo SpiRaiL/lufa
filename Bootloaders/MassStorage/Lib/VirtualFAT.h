@@ -276,10 +276,6 @@
 
 	/* Function Prototypes: */
 		#if defined(INCLUDE_FROM_VIRTUAL_FAT_C)
-			static uint8_t ReadEEPROMByte(const uint8_t* const Address) ATTR_NO_INLINE;
-
-			static void WriteEEPROMByte(uint8_t* const Address,
-			                            const uint8_t Data) ATTR_NO_INLINE;
 
 			static void UpdateFAT12ClusterEntry(uint8_t* const FATTable,
 			                                    const uint16_t Index,
@@ -289,20 +285,16 @@
 			                                    const uint16_t StartIndex,
 			                                    const uint8_t ChainLength) AUX_BOOT_SECTION;
 
-			static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber,
-			                                    uint8_t* BlockBuffer,
-			                                    const bool Read) AUX_BOOT_SECTION;
+			static void WriteFLASHFileBlock(const uint16_t BlockNumber,
+			                                    uint8_t* BlockBuffer) AUX_BOOT_SECTION;
 
-			static void ReadWriteEEPROMFileBlock(const uint16_t BlockNumber,
-			                                     uint8_t* BlockBuffer,
-			                                     const bool Read) AUX_BOOT_SECTION;
+
+			void VirtualFAT_WriteBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
+			void VirtualFAT_ReadBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
+			bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) AUX_BOOT_SECTION;
+			
+		//	void Setup_bootLoader_from_EEPROM(void) AUX_BOOT_SECTION;
 		#endif
-
-		void VirtualFAT_WriteBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
-		void VirtualFAT_ReadBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
-		bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) AUX_BOOT_SECTION;
-		
-		void Setup_bootLoader_from_EEPROM(void) AUX_BOOT_SECTION;
 
 		#define EE_LABEL_SIZE 11
 
