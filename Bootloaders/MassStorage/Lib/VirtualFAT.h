@@ -184,7 +184,6 @@
 			/** Flash write enable state */
 			WRITE_ignore_all = 0,
 			WRITE_enabled_flash = 1,	
-			WRITE_enabled_eeprom = 2,	
 		};
 
 	/* Type Definitions: */
@@ -281,10 +280,6 @@
 			                                    const uint16_t Index,
 			                                    const uint16_t ChainEntry) AUX_BOOT_SECTION;
 
-			static void UpdateFAT12ClusterChain(uint8_t* const FATTable,
-			                                    const uint16_t StartIndex,
-			                                    const uint8_t ChainLength) AUX_BOOT_SECTION;
-
 			static void WriteFLASHFileBlock(const uint16_t BlockNumber,
 			                                    uint8_t* BlockBuffer) AUX_BOOT_SECTION;
 
@@ -293,7 +288,6 @@
 			void VirtualFAT_ReadBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
 			bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) AUX_BOOT_SECTION;
 			
-		//	void Setup_bootLoader_from_EEPROM(void) AUX_BOOT_SECTION;
 		#endif
 
 		#define EE_LABEL_SIZE 11

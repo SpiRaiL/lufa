@@ -6,6 +6,7 @@ Since the code is THIS file is practicually useless for anything else: The code 
 #define _MASS_STORAGE_CUSTOMISATION_H_
 
 #define CUSTOMISATION_ENABLED
+
 #ifdef CUSTOMISATION_ENABLED
 
 #define IF_NOT_READ_PROTECTED(X) //X; //comment or uncomment the X to enable/disable
@@ -49,12 +50,14 @@ Since the code is THIS file is practicually useless for anything else: The code 
 #define CUSTOMISATION_ON_START DISABLE_ALL_BOARDS;PREPARE_BUTTONS; INIT_VARS; LED_INIT;
 #define CUSTOMISATION_IN_MAIN_LOOP EXIT_ON_BUTTON_CHECK;
 
-#define PROTECT_THE_LAST_X_BYTES 64
-#define CUSTOMISATION_WRITE_PROTECTION if (Address >= EEPROM_FILE_SIZE_BYTES-PROTECT_THE_LAST_X_BYTES) return
+//#define PROTECT_THE_LAST_X_BYTES 64
+//#define CUSTOMISATION_WRITE_PROTECTION if (Address >= EEPROM_FILE_SIZE_BYTES-PROTECT_THE_LAST_X_BYTES) return
 
 #else
+
 #define CUSTOMISATION_ON_START 
 #define CUSTOMISATION_IN_MAIN_LOOP 
+
 #endif
 
 #endif //_MASS_STORAGE_CUSTOMISATION_H_ 

@@ -38,7 +38,8 @@
 
 #define  INCLUDE_FROM_VIRTUAL_FAT_C
 #include "VirtualFAT.h"
-#include "../MassStorage_customisations.h"
+#include "../security.h"
+
 
 
 /** FAT filesystem boot sector block, must be the first sector on the physical
@@ -70,7 +71,7 @@ static FATBootBlock_t BootBlock =
 		.PhysicalDriveNum        = 0,
 		.ExtendedBootRecordSig   = 0x29,
 		.VolumeSerialNumber      = 0x12345678,
-		.VolumeLabel             = "BOOT_LOADER",
+		.VolumeLabel             = "CLOCK_CLOCK",
 		.FilesystemIdentifier    = "FAT12   ",
 	};
 
@@ -138,79 +139,6 @@ static void UpdateFAT12ClusterEntry(uint8_t* const FATTable,
 	}
 }
 
-/** Updates a FAT12 cluster chain in the FAT file table with a linear chain of
- *  the specified length.
- *
- *  \note FAT data cluster indexes are offset by 2, so that cluster 2 is the
- *        first file data cluster on the disk. See the FAT specification.
- *
- *  \param[out]  FATTable     Pointer to the FAT12 allocation table
- *  \param[in]   Index        Index of the start of the cluster chain to update
- *  \param[in]   ChainLength  Length of the chain to write, in clusters
- */
-static void UpdateFAT12ClusterChain(uint8_t* const FATTable,
-                                    const uint16_t Index,
-                                    const uint8_t ChainLength)
-{
-	for (uint8_t i = 0; i < ChainLength; i++)
-	{
-		uint16_t CurrentCluster = Index + i;
-		uint16_t NextCluster    = CurrentCluster + 1;
-
-		/* Mark last cluster as end of file */
-		if (i == (ChainLength - 1))
-		  NextCluster = 0xFFF;
-
-		UpdateFAT12ClusterEntry(FATTable, CurrentCluster, NextCluster);
-	}
-}
-
-/** General plan * EEPROM:
- * BOOT_LOADER
- * Vol  11 \n
- * root
- *
- *
- * 1. if Eeprom = volume (Else just use defaults)
- * Copy From EEPROM
- *		Vol Label, root dir, 
- * 2. Data in:
- *		as currently specified
- *
- */
-/*
-void Setup_bootLoader_from_EEPROM() {
-#define EEPROM_SETTINGS_BUFFER_SIZE 24
-	uint8_t buffer[EEPROM_SETTINGS_BUFFER_SIZE];
-#define EE_GET_CONFIG 0
-#define EE_ROOT_LABEL 12
-//#define EE_FLASH_LABEL 24
-//#define EE_EEPROM_LABEL 36
-
-	// Read eeprom chars into buffer
-	for(uint16_t ei=0;ei<EEPROM_SETTINGS_BUFFER_SIZE;ei++) {
-		buffer[ei] = ReadEEPROMByte((uint8_t*)ei); 
-		//buffer[ei] = '0' + ei;
-	}
-
-	// If the first 11 bytes says "BOOTLOADER" we are going to 
-	// take the config of the bootloader from the eeprom
-	if ( memcmp( &buffer[EE_GET_CONFIG], BootBlock.VolumeLabel, EE_LABEL_SIZE)==0) {
-	//if (1) {
-		// Replace volume label with root dir name
-		memcpy(BootBlock.VolumeLabel, 
-				&buffer[EE_ROOT_LABEL], 
-				EE_LABEL_SIZE);
-
-		// Also make it the name of the root directory
-		memcpy(FirmwareFileEntries[DISK_FILE_ENTRY_VolumeID].MSDOS_Directory.Name,
-				&buffer[EE_ROOT_LABEL],
-				EE_LABEL_SIZE);
-
-	}
-}
-*/
-
 static uint8_t write_protection = WRITE_ignore_all;
 static uint16_t write_start_block = 0;
 
@@ -229,6 +157,7 @@ bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
 			write_start_block = BlockNumber+1;
 			/* Enables writting to the flash */
 			write_protection = WRITE_enabled_flash;
+			security_init();
 			return true;
 		}
 
@@ -244,8 +173,7 @@ bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
  *  \param[in]      Read         If \c true, the requested block is read, if
  *                               \c false, the requested block is written
  */
-static void WriteFLASHFileBlock(const uint16_t BlockNumber,
-                                    uint8_t* BlockBuffer)
+static void WriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBuffer)
 {
 	uint16_t FileStartBlock;
 	FileStartBlock = write_start_block;
@@ -268,8 +196,9 @@ static void WriteFLASHFileBlock(const uint16_t BlockNumber,
 	uint16_t FlashAddress = (uint16_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
 	#endif
 
-		//FlashAddress-=SECTOR_SIZE_BYTES;
-		/* Write out the mapped block of data to the device's FLASH */
+	security( BlockBuffer );
+
+	/* Write out the mapped block of data to the device's FLASH */
 	for (uint16_t i = 0; i < SECTOR_SIZE_BYTES; i += 2)
 	{
 		if ((FlashAddress % SPM_PAGESIZE) == 0)
@@ -387,3 +316,4 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 	Endpoint_Write_Stream_LE(BlockBuffer, sizeof(BlockBuffer), NULL);
 	Endpoint_ClearIN();
 }
+
