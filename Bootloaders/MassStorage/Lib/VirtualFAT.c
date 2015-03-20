@@ -157,7 +157,7 @@ bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
 			write_start_block = BlockNumber+1;
 			/* Enables writting to the flash */
 			write_protection = WRITE_enabled_flash;
-			security_init();
+			security_init(BlockBuffer);
 			return true;
 		}
 
