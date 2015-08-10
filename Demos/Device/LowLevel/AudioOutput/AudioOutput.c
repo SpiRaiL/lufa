@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2014.
+     Copyright (C) Dean Camera, 2015.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2015  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -198,7 +198,7 @@ void EVENT_USB_Device_ControlRequest(void)
 
 					Endpoint_ClearSETUP();
 					Endpoint_Read_Control_Stream_LE(SampleRate, sizeof(SampleRate));
-					Endpoint_ClearOUT();
+					Endpoint_ClearIN();
 
 					/* Set the new sampling frequency to the value given by the host */
 					CurrentAudioSampleFrequency = (((uint32_t)SampleRate[2] << 16) | ((uint32_t)SampleRate[1] << 8) | (uint32_t)SampleRate[0]);
@@ -210,7 +210,7 @@ void EVENT_USB_Device_ControlRequest(void)
 
 			break;
 		case AUDIO_REQ_GetCurrent:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_ENDPOINT))
+			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_ENDPOINT))
 			{
 				/* Extract out the relevant request information to get the target Endpoint address and control being retrieved */
 				uint8_t EndpointAddress = (uint8_t)USB_ControlRequest.wIndex;

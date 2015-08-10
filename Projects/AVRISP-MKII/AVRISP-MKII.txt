@@ -67,6 +67,25 @@
  *  While this application can be compiled for USB AVRs with as little as 8KB of FLASH, for full functionality 16KB or more
  *  of FLASH is required. On 8KB devices, ISP or PDI/TPI protocol programming support can be disabled to reduce program size.
  *
+ *  \section Sec_KnownIssues Known Issues:
+ *
+ *  \par Incompatible with newer AVRDUDE releases.
+ *  Due to <a href="http://savannah.nongnu.org/bugs/index.php?40831">a change in 6.0.1 and never AVRDUDE releases</a>,
+ *  these builds are incompatible with the AVRISP-MKII clone project. Use an older 5.x release until AVRDUDE is patched.
+ *
+ *  \par XMEGA EEPROM programming fails in some cases.
+ *  Several users have reported that XMEGA EEPROM programming fails unless the chip is erased first. If a non-blank EEPROM
+ *  is present, writing further EEPROM data causes corruption.
+ *  <a href="https://github.com/abcminiuser/lufa/issues/25">LUFA issue tracker entry</a>.
+ *
+ *  \par Does not work with Atmel Studio 6.2 or newer in some cases.
+ *  If the libUSB filter driver is used to bind both libUSB and Jungo drivers to the clone device at the same time, it will
+ *  no longer work in Atmel Studio 6.2 and newer. This is due to a change in the latter; Atmel Studio now supports both
+ *  drivers for various tools, but while the libUSB driver is given preference the inner workings of Atmel Studio cannot
+ *  communicate with the AVR-ISP MKII with libUSB (this is true for the genuine tool also). Uninstall the filter driver and
+ *  install only the standard libUSB driver, or Jungo driver. The \c RESET_TOGGLES_LIBUSB_COMPAT compile option (detailed
+ *  below) is a suitable workaround to this issue.
+ *
  *  \section Sec_Installation Installation
  *  The programmer supports multiple platforms, both Windows and Linux.
  *

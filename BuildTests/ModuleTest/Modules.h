@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2014.
+     Copyright (C) Dean Camera, 2015.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2015  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -37,20 +37,20 @@
 #include <LUFA/Drivers/Misc/TerminalCodes.h>
 
 #if (ARCH == ARCH_AVR8)
-	#if defined(TWCR)
-		#include <LUFA/Drivers/Peripheral/TWI.h>
-	#endif
-
 	#if defined(ADC)
 		#include <LUFA/Drivers/Peripheral/ADC.h>
 	#endif
 
 	#include <LUFA/Drivers/Peripheral/Serial.h>
-	#include <LUFA/Drivers/Peripheral/SPI.h>
 	#include <LUFA/Drivers/Peripheral/SerialSPI.h>
+	#include <LUFA/Drivers/Peripheral/SPI.h>
+
+	#if defined(TWCR)
+		#include <LUFA/Drivers/Peripheral/TWI.h>
+	#endif
 #elif (ARCH == ARCH_XMEGA)
-	#include <LUFA/Drivers/Peripheral/TWI.h>
 	#include <LUFA/Drivers/Peripheral/Serial.h>
-	#include <LUFA/Drivers/Peripheral/SPI.h>
 	#include <LUFA/Drivers/Peripheral/SerialSPI.h>
+	#include <LUFA/Drivers/Peripheral/SPI.h>
+	#include <LUFA/Drivers/Peripheral/TWI.h>
 #endif

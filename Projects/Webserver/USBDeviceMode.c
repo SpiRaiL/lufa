@@ -1,13 +1,13 @@
 /*
              LUFA Library
-     Copyright (C) Dean Camera, 2014.
+     Copyright (C) Dean Camera, 2015.
 
   dean [at] fourwalledcubicle [dot] com
            www.lufa-lib.org
 */
 
 /*
-  Copyright 2014  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  Copyright 2015  Dean Camera (dean [at] fourwalledcubicle [dot] com)
 
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
@@ -35,6 +35,9 @@
  */
 
 #include "USBDeviceMode.h"
+
+/** Message buffer for RNDIS messages processed by the RNDIS device class driver. */
+static uint8_t RNDIS_Message_Buffer[192];
 
 /** LUFA RNDIS Class driver interface configuration and state information. This structure is
  *  passed to all RNDIS Class driver functions, so that multiple instances of the same class
@@ -65,6 +68,8 @@ USB_ClassInfo_RNDIS_Device_t Ethernet_RNDIS_Interface_Device =
 					},
 				.AdapterVendorDescription       = "LUFA RNDIS Adapter",
 				.AdapterMACAddress              = {{0x02, 0x00, 0x02, 0x00, 0x02, 0x00}},
+				.MessageBuffer                  = RNDIS_Message_Buffer,
+				.MessageBufferLength            = sizeof(RNDIS_Message_Buffer),
 			},
 	};
 
