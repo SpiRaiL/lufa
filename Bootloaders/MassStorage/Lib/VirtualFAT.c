@@ -38,7 +38,8 @@
 
 #define  INCLUDE_FROM_VIRTUAL_FAT_C
 #include "VirtualFAT.h"
-#include "../MassStorage_customisations.h"
+#include "../security.h"
+
 
 
 /** FAT filesystem boot sector block, must be the first sector on the physical
@@ -70,7 +71,7 @@ static FATBootBlock_t BootBlock =
 		.PhysicalDriveNum        = 0,
 		.ExtendedBootRecordSig   = 0x29,
 		.VolumeSerialNumber      = 0x12345678,
-		.VolumeLabel             = "BOOT_LOADER",
+		.VolumeLabel             = "CLOCK_CLOCK",
 		.FilesystemIdentifier    = "FAT12   ",
 	};
 
@@ -85,7 +86,7 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 		{
 			.MSDOS_Directory =
 				{
-					.Name            = "NO_CONFIG  ",
+					.Name            = "CLOCK_CLOCK",
 					.Attributes      = FAT_FLAG_VOLUME_NAME,
 					.Reserved        = {0},
 					.CreationTime    = 0,
@@ -95,93 +96,6 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
 				}
 		},
 
-		/* VFAT Long File Name entry for the virtual firmware file; required to
-		 * prevent corruption from systems that are unable to detect the device
-		 * as being a legacy MSDOS style FAT12 volume. */
-		[DISK_FILE_ENTRY_FLASH_LFN] =
-		{
-			.VFAT_LongFileName =
-				{
-					.Ordinal         = 1 | FAT_ORDINAL_LAST_ENTRY,
-					.Attribute       = FAT_FLAG_LONG_FILE_NAME,
-					.Reserved1       = 0,
-					.Reserved2       = 0,
-
-					.Checksum        = FAT_CHECKSUM('F','L','A','S','H',' ',' ',' ','B','I','N'),
-
-					.Unicode1        = 'F',
-					.Unicode2        = 'L',
-					.Unicode3        = 'A',
-					.Unicode4        = 'S',
-					.Unicode5        = 'H',
-					.Unicode6        = '.',
-					.Unicode7        = 'B',
-					.Unicode8        = 'I',
-					.Unicode9        = 'N',
-					.Unicode10       = 0,
-					.Unicode11       = 0,
-					.Unicode12       = 0,
-					.Unicode13       = 0,
-				}
-		},
-
-		/* MSDOS file entry for the virtual Firmware image. */
-		[DISK_FILE_ENTRY_FLASH_MSDOS] =
-		{
-			.MSDOS_File =
-				{
-					.Filename        = "FLASH   ",
-					.Extension       = "BIN",
-					.Attributes      = 0,
-					.Reserved        = {0},
-					.CreationTime    = FAT_TIME(1, 1, 0),
-					.CreationDate    = FAT_DATE(16, 1, 1983),
-					.StartingCluster = 2,
-					.FileSizeBytes   = FLASH_FILE_SIZE_BYTES,
-				}
-		},
-
-		[DISK_FILE_ENTRY_EEPROM_LFN] =
-		{
-			.VFAT_LongFileName =
-				{
-					.Ordinal         = 1 | FAT_ORDINAL_LAST_ENTRY,
-					.Attribute       = FAT_FLAG_LONG_FILE_NAME,
-					.Reserved1       = 0,
-					.Reserved2       = 0,
-
-					.Checksum        = FAT_CHECKSUM('E','E','P','R','O','M',' ',' ','B','I','N'),
-
-					.Unicode1        = 'E',
-					.Unicode2        = 'E',
-					.Unicode3        = 'P',
-					.Unicode4        = 'R',
-					.Unicode5        = 'O',
-					.Unicode6        = 'M',
-					.Unicode7        = '.',
-					.Unicode8        = 'B',
-					.Unicode9        = 'I',
-					.Unicode10       = 'N',
-					.Unicode11       = 0,
-					.Unicode12       = 0,
-					.Unicode13       = 0,
-				}
-		},
-
-		[DISK_FILE_ENTRY_EEPROM_MSDOS] =
-		{
-			.MSDOS_File =
-				{
-					.Filename        = "EEPROM  ",
-					.Extension       = "BIN",
-					.Attributes      = 0,
-					.Reserved        = {0},
-					.CreationTime    = FAT_TIME(1, 1, 0),
-					.CreationDate    = FAT_DATE(16, 1, 1983),
-					.StartingCluster = 2 + FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES),
-					.FileSizeBytes   = EEPROM_FILE_SIZE_BYTES,
-				}
-		},
 	};
 
 /** Starting cluster of the virtual FLASH.BIN file on disk, tracked so that the
@@ -189,51 +103,8 @@ static FATDirectoryEntry_t FirmwareFileEntries[] =
  *  systems files are usually replaced using the original file's disk clusters,
  *  while Linux appears to overwrite with an offset which must be compensated for.
  */
-static uint16_t* FLASHFileStartCluster  = &FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.StartingCluster;
+//static uint16_t* FLASHFileStartCluster  = &FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.StartingCluster;
 
-/** Starting cluster of the virtual EEPROM.BIN file on disk, tracked so that the
- *  offset from the start of the data sector can be determined. On Windows
- *  systems files are usually replaced using the original file's disk clusters,
- *  while Linux appears to overwrite with an offset which must be compensated for.
- */
-static uint16_t* EEPROMFileStartCluster = &FirmwareFileEntries[DISK_FILE_ENTRY_EEPROM_MSDOS].MSDOS_File.StartingCluster;
-
-/** Reads a byte of EEPROM out from the EEPROM memory space.
- *
- *  \note This function is required as the avr-libc EEPROM functions do not cope
- *        with linker relaxations, and a jump longer than 4K of FLASH on the
- *        larger USB AVRs will break the linker. This function is marked as
- *        never inlinable and placed into the normal text segment so that the
- *        call to the EEPROM function will be short even if the AUX boot section
- *        is used.
- *
- *  \param[in]  Address   Address of the EEPROM location to read from
- *
- *  \return Read byte of EEPROM data.
- */
-static uint8_t ReadEEPROMByte(const uint8_t* const Address)
-{
-	return eeprom_read_byte(Address);
-}
-
-/** Writes a byte of EEPROM out to the EEPROM memory space.
- *
- *  \note This function is required as the avr-libc EEPROM functions do not cope
- *        with linker relaxations, and a jump longer than 4K of FLASH on the
- *        larger USB AVRs will break the linker. This function is marked as
- *        never inlinable and placed into the normal text segment so that the
- *        call to the EEPROM function will be short even if the AUX boot section
- *        is used.
- *
- *  \param[in]  Address   Address of the EEPROM location to write to
- *  \param[in]  Data      New data to write to the EEPROM location
- */
-static void WriteEEPROMByte(uint8_t* const Address,
-                            const uint8_t Data)
-{
-	 //CUSTOMISATION_WRITE_PROTECTION;
-	 eeprom_update_byte(Address, Data);
-}
 
 /** Updates a FAT12 cluster entry in the FAT file table with the specified next
  *  chain index. If the cluster is the last in the file chain, the magic value
@@ -268,78 +139,6 @@ static void UpdateFAT12ClusterEntry(uint8_t* const FATTable,
 	}
 }
 
-/** Updates a FAT12 cluster chain in the FAT file table with a linear chain of
- *  the specified length.
- *
- *  \note FAT data cluster indexes are offset by 2, so that cluster 2 is the
- *        first file data cluster on the disk. See the FAT specification.
- *
- *  \param[out]  FATTable     Pointer to the FAT12 allocation table
- *  \param[in]   Index        Index of the start of the cluster chain to update
- *  \param[in]   ChainLength  Length of the chain to write, in clusters
- */
-static void UpdateFAT12ClusterChain(uint8_t* const FATTable,
-                                    const uint16_t Index,
-                                    const uint8_t ChainLength)
-{
-	for (uint8_t i = 0; i < ChainLength; i++)
-	{
-		uint16_t CurrentCluster = Index + i;
-		uint16_t NextCluster    = CurrentCluster + 1;
-
-		/* Mark last cluster as end of file */
-		if (i == (ChainLength - 1))
-		  NextCluster = 0xFFF;
-
-		UpdateFAT12ClusterEntry(FATTable, CurrentCluster, NextCluster);
-	}
-}
-
-/** General plan
- * EEPROM:
- * BOOT_LOADER
- * Vol  11 \n
- * root
- *
- *
- * 1. if Eeprom = volume (Else just use defaults)
- * Copy From EEPROM
- *		Vol Label, root dir, 
- * 2. Data in:
- *		as currently specified
- *
- */
-void Setup_bootLoader_from_EEPROM() {
-#define EEPROM_SETTINGS_BUFFER_SIZE 24
-	uint8_t buffer[EEPROM_SETTINGS_BUFFER_SIZE];
-#define EE_GET_CONFIG 0
-#define EE_ROOT_LABEL 12
-//#define EE_FLASH_LABEL 24
-//#define EE_EEPROM_LABEL 36
-
-	// Read eeprom chars into buffer
-	for(uint16_t ei=0;ei<EEPROM_SETTINGS_BUFFER_SIZE;ei++) {
-		buffer[ei] = ReadEEPROMByte((uint8_t*)ei); 
-		//buffer[ei] = '0' + ei;
-	}
-
-	// If the first 11 bytes says "BOOTLOADER" we are going to 
-	// take the config of the bootloader from the eeprom
-	if ( memcmp( &buffer[EE_GET_CONFIG], BootBlock.VolumeLabel, EE_LABEL_SIZE)==0) {
-	//if (1) {
-		// Replace volume label with root dir name
-		memcpy(BootBlock.VolumeLabel, 
-				&buffer[EE_ROOT_LABEL], 
-				EE_LABEL_SIZE);
-
-		// Also make it the name of the root directory
-		memcpy(FirmwareFileEntries[DISK_FILE_ENTRY_VolumeID].MSDOS_Directory.Name,
-				&buffer[EE_ROOT_LABEL],
-				EE_LABEL_SIZE);
-
-	}
-}
-
 static uint8_t write_protection = WRITE_ignore_all;
 static uint16_t write_start_block = 0;
 
@@ -348,13 +147,7 @@ Returns true of there is a change */
 bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
 
 	// Check for write to flash
-	//if ((write_protection == WRITE_ignore_all ) || (write_protection == WRITE_enabled_eeprom )) {
 		if (  
-			/** Reads the first 8 bytes of the sector and checks for the file name*/
-				memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.Filename, 
-					BlockBuffer, EE_LABEL_SIZE )==0 
-		||
-			/** OR check if the name matches the root directory (used in multi controller models)*/
 				memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_VolumeID].MSDOS_Directory.Name, 
 					BlockBuffer, EE_LABEL_SIZE )==0 
 
@@ -364,28 +157,10 @@ bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
 			write_start_block = BlockNumber+1;
 			/* Enables writting to the flash */
 			write_protection = WRITE_enabled_flash;
+			security_init(BlockBuffer);
 			return true;
 		}
 
-		/* We did not match the flash, but we are uploading a big "upgrade" file and we found the next
-		 * flash file. ie: the model is correct, but the address was wrong */
-		if (  memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_VolumeID].MSDOS_Directory.Name, 
-					BlockBuffer, EE_LABEL_SIZE-2 )==0 
-
-				) {
-			write_protection = WRITE_ignore_all;
-			return true;
-		}
-	
-	// Check for write to EEPROM
-	//if ((write_protection == WRITE_ignore_all) || (write_protection == WRITE_enabled_flash )) {
-		if ( memcmp(FirmwareFileEntries[DISK_FILE_ENTRY_EEPROM_MSDOS].MSDOS_File.Filename, BlockBuffer, EE_LABEL_SIZE)==0 ) {
-			//(*EEPROMFileStartCluster) = (BlockNumber-DISK_BLOCK_DataStartBlock)/SECTOR_PER_CLUSTER + 2;
-			write_start_block = BlockNumber+1;
-			write_protection =  WRITE_enabled_eeprom;
-			return true;
-		}
-	//}
 	return false;
 }
 
@@ -398,20 +173,17 @@ bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) {
  *  \param[in]      Read         If \c true, the requested block is read, if
  *                               \c false, the requested block is written
  */
-static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber,
-                                    uint8_t* BlockBuffer,
-                                    const bool Read)
+static void WriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBuffer)
 {
 	uint16_t FileStartBlock;
-	if (Read) FileStartBlock = DISK_BLOCK_DataStartBlock + (*FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
-	else FileStartBlock = write_start_block;
+	FileStartBlock = write_start_block;
 
 	uint16_t FileEndBlock   = FileStartBlock + (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) - 1);
 
 	/* Range check the write request - abort if requested block is not within the
 	 * virtual firmware file sector range */
 	if (!((BlockNumber >= FileStartBlock) && (BlockNumber < FileEndBlock))) {
-		if(!Read) write_protection = WRITE_ignore_all;
+		write_protection = WRITE_ignore_all;
 		return;
 	}
 
@@ -424,87 +196,26 @@ static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber,
 	uint16_t FlashAddress = (uint16_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
 	#endif
 
-	if (Read)
+	security( BlockBuffer );
+
+	/* Write out the mapped block of data to the device's FLASH */
+	for (uint16_t i = 0; i < SECTOR_SIZE_BYTES; i += 2)
 	{
-		/* Read out the mapped block of data from the device's FLASH */
-		for (uint16_t i = 0; i < SECTOR_SIZE_BYTES; i++)
+		if ((FlashAddress % SPM_PAGESIZE) == 0)
 		{
-			#if (FLASHEND > 0xFFFF)
-			  BlockBuffer[i] = pgm_read_byte_far(FlashAddress++);
-			#else
-			  BlockBuffer[i] = pgm_read_byte(FlashAddress++);
-			#endif
+			/* Erase the given FLASH page, ready to be programmed */
+			BootloaderAPI_ErasePage(FlashAddress);
 		}
-	}
-	else
-	{
-		//FlashAddress-=SECTOR_SIZE_BYTES;
-		/* Write out the mapped block of data to the device's FLASH */
-		for (uint16_t i = 0; i < SECTOR_SIZE_BYTES; i += 2)
+
+		/* Write the next data word to the FLASH page */
+		BootloaderAPI_FillWord(FlashAddress, (BlockBuffer[i + 1] << 8) | BlockBuffer[i]);
+		FlashAddress += 2;
+
+		if ((FlashAddress % SPM_PAGESIZE) == 0)
 		{
-			if ((FlashAddress % SPM_PAGESIZE) == 0)
-			{
-				/* Erase the given FLASH page, ready to be programmed */
-				BootloaderAPI_ErasePage(FlashAddress);
-			}
-
-			/* Write the next data word to the FLASH page */
-			BootloaderAPI_FillWord(FlashAddress, (BlockBuffer[i + 1] << 8) | BlockBuffer[i]);
-			FlashAddress += 2;
-
-			if ((FlashAddress % SPM_PAGESIZE) == 0)
-			{
-				/* Write the filled FLASH page to memory */
-				BootloaderAPI_WritePage(FlashAddress - SPM_PAGESIZE);
-			}
+			/* Write the filled FLASH page to memory */
+			BootloaderAPI_WritePage(FlashAddress - SPM_PAGESIZE);
 		}
-	}
-}
-
-/** Reads or writes a block of data from/to the physical device EEPROM using a
- *  block buffer stored in RAM, if the requested block is within the virtual
- *  firmware file's sector ranges in the emulated FAT file system.
- *
- *  \param[in]      BlockNumber  Physical disk block to read from/write to
- *  \param[in,out]  BlockBuffer  Pointer to the start of the block buffer in RAM
- *  \param[in]      Read         If \c true, the requested block is read, if
- *                               \c false, the requested block is written
- */
-static void ReadWriteEEPROMFileBlock(const uint16_t BlockNumber,
-                                     uint8_t* BlockBuffer,
-                                     const bool Read)
-{
-	
-	uint16_t FileStartBlock;
-	if (Read) FileStartBlock = DISK_BLOCK_DataStartBlock + (*EEPROMFileStartCluster - 2) * SECTOR_PER_CLUSTER;
-	else FileStartBlock = write_start_block;
-	
-	uint16_t FileEndBlock   = FileStartBlock + (FILE_SECTORS(EEPROM_FILE_SIZE_BYTES) - 1);
-
-	/* Range check the write request - abort if requested block is not within the
-	 * virtual firmware file sector range */
-	if (!((BlockNumber >= FileStartBlock) && (BlockNumber < FileEndBlock))) {
-		if(!Read) write_protection = WRITE_ignore_all;
-		return;
-	}
-
-	// Last sector in file, re-enables write protection
-	//if (BlockNumber == FileEndBlock-1) write_protection = WRITE_ignore_all;
-
-	uint16_t EEPROMAddress = (uint16_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
-
-	if (Read)
-	{
-		/* Read out the mapped block of data from the device's EEPROM */
-		for (uint16_t i = 0; i < SECTOR_SIZE_BYTES; i++)
-		  BlockBuffer[i] = ReadEEPROMByte((uint8_t*)EEPROMAddress++);
-	}
-	else
-	{
-		//EEPROMAddress-=SECTOR_SIZE_BYTES;
-		/* Write out the mapped block of data to the device's EEPROM */
-		for (uint16_t i = 0; i < SECTOR_SIZE_BYTES; i++)
-		  WriteEEPROMByte((uint8_t*)EEPROMAddress++, BlockBuffer[i]);
 	}
 }
 
@@ -545,11 +256,7 @@ void VirtualFAT_WriteBlock(const uint16_t BlockNumber)
 			if (Check_for_WriteEnable(BlockNumber, BlockBuffer) ) return;
 
 			if (write_protection == WRITE_enabled_flash)
-				ReadWriteFLASHFileBlock(BlockNumber, BlockBuffer, false);
-
-			if (write_protection == WRITE_enabled_eeprom)
-				ReadWriteEEPROMFileBlock(BlockNumber, BlockBuffer, false);
-
+				WriteFLASHFileBlock(BlockNumber, BlockBuffer);
 
 			break;
 	}
@@ -571,7 +278,7 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 	{
 		case DISK_BLOCK_BootBlock:
 
-			Setup_bootLoader_from_EEPROM();
+			//Setup_bootLoader_from_EEPROM();
 			
 			memcpy(BlockBuffer, &BootBlock, sizeof(FATBootBlock_t));
 
@@ -590,10 +297,8 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 			UpdateFAT12ClusterEntry(BlockBuffer, 1, 0xFFF);
 
 			/* Cluster 2 onwards: Cluster chain of FLASH.BIN */
-			UpdateFAT12ClusterChain(BlockBuffer, *FLASHFileStartCluster, FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES));
-
-			/* Cluster 2+n onwards: Cluster chain of EEPROM.BIN */
-			UpdateFAT12ClusterChain(BlockBuffer, *EEPROMFileStartCluster, FILE_CLUSTERS(EEPROM_FILE_SIZE_BYTES));
+			// files are no longer shown
+			//UpdateFAT12ClusterChain(BlockBuffer, *FLASHFileStartCluster, FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES));
 
 			break;
 
@@ -603,10 +308,7 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 			break;
 
 		default:
-			IF_NOT_READ_PROTECTED(ReadWriteFLASHFileBlock(BlockNumber-1, BlockBuffer, true));
-
-			ReadWriteEEPROMFileBlock(BlockNumber-1, BlockBuffer, true);
-
+			/* reading data was here, this is now removed */
 			break;
 	}
 
@@ -614,3 +316,4 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 	Endpoint_Write_Stream_LE(BlockBuffer, sizeof(BlockBuffer), NULL);
 	Endpoint_ClearIN();
 }
+

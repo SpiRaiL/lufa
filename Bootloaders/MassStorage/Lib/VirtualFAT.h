@@ -161,14 +161,6 @@
 		{
 			/** Volume ID directory entry, giving the name of the virtual disk. */
 			DISK_FILE_ENTRY_VolumeID      = 0,
-			/** Long File Name FAT file entry of the virtual FLASH.BIN image file. */
-			DISK_FILE_ENTRY_FLASH_LFN     = 1,
-			/** Legacy MSDOS FAT file entry of the virtual FLASH.BIN image file. */
-			DISK_FILE_ENTRY_FLASH_MSDOS   = 2,
-			/** Long File Name FAT file entry of the virtual EEPROM.BIN image file. */
-			DISK_FILE_ENTRY_EEPROM_LFN    = 3,
-			/** Legacy MSDOS FAT file entry of the virtual EEPROM.BIN image file. */
-			DISK_FILE_ENTRY_EEPROM_MSDOS  = 4,
 		};
 
 		/** Enum for the physical disk blocks of the virtual disk. */
@@ -192,7 +184,6 @@
 			/** Flash write enable state */
 			WRITE_ignore_all = 0,
 			WRITE_enabled_flash = 1,	
-			WRITE_enabled_eeprom = 2,	
 		};
 
 	/* Type Definitions: */
@@ -284,33 +275,20 @@
 
 	/* Function Prototypes: */
 		#if defined(INCLUDE_FROM_VIRTUAL_FAT_C)
-			static uint8_t ReadEEPROMByte(const uint8_t* const Address) ATTR_NO_INLINE;
-
-			static void WriteEEPROMByte(uint8_t* const Address,
-			                            const uint8_t Data) ATTR_NO_INLINE;
 
 			static void UpdateFAT12ClusterEntry(uint8_t* const FATTable,
 			                                    const uint16_t Index,
 			                                    const uint16_t ChainEntry) AUX_BOOT_SECTION;
 
-			static void UpdateFAT12ClusterChain(uint8_t* const FATTable,
-			                                    const uint16_t StartIndex,
-			                                    const uint8_t ChainLength) AUX_BOOT_SECTION;
+			static void WriteFLASHFileBlock(const uint16_t BlockNumber,
+			                                    uint8_t* BlockBuffer) AUX_BOOT_SECTION;
 
-			static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber,
-			                                    uint8_t* BlockBuffer,
-			                                    const bool Read) AUX_BOOT_SECTION;
 
-			static void ReadWriteEEPROMFileBlock(const uint16_t BlockNumber,
-			                                     uint8_t* BlockBuffer,
-			                                     const bool Read) AUX_BOOT_SECTION;
+			void VirtualFAT_WriteBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
+			void VirtualFAT_ReadBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
+			bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) AUX_BOOT_SECTION;
+			
 		#endif
-
-		void VirtualFAT_WriteBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
-		void VirtualFAT_ReadBlock(const uint16_t BlockNumber) AUX_BOOT_SECTION;
-		bool Check_for_WriteEnable(const uint16_t BlockNumber, uint8_t* BlockBuffer) AUX_BOOT_SECTION;
-		
-		void Setup_bootLoader_from_EEPROM(void) AUX_BOOT_SECTION;
 
 		#define EE_LABEL_SIZE 11
 
