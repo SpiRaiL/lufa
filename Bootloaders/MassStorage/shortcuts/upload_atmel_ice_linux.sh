@@ -12,7 +12,11 @@
 #sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -e -Ulock:w:0xFF:m -U hfuse:w:0xd8:m -U lfuse:w:0xde:m -U efuse:w:0xC3:m
 
 #put Lfuse first
-sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -e -Ulock:w:0xFF:m -U lfuse:w:0xde:m -U hfuse:w:0xd8:m -U efuse:w:0xC3:m
+sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -e -Ulock:w:0xFF:m
+sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -U lfuse:w:0xde:m
+sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -U hfuse:w:0xd8:m
+sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -U efuse:w:0xC3:m
 
-sudo avrdude -catmelice_isp -b9600 -B10 -pm32u4 -Pusb -v -Uflash:w:BootloaderMassStorage.hex -Ulock:w:0xc4:m 
+sudo avrdude -catmelice_isp -b9600 -B10 -pm32u4 -Pusb -v -Uflash:w:BootloaderMassStorage.hex
+sudo avrdude -catmelice_isp -b9600 -B10 -pm32u4 -Pusb -v -Ulock:w:0xc4:m 
 
