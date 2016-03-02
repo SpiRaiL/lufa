@@ -24,7 +24,7 @@ Since the code is THIS file is practicually useless for anything else: The code 
  */
 
 // Take pins 4,6,7 on portD and pin 6 on portC (but put it into position 5)
-#define PORTD_MASK (0b11010000)
+#define PORTD_MASK (0b10001000)
 #define BUTTON_MASK (PIND & PORTD_MASK | ( (PINC & (1<<PC6)) >> 1))
 //#define BUTTON_MASK (PIND&(1<<PD6))
 #define MIN_PRESS_TIMER 10000
