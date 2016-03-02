@@ -16,7 +16,7 @@
 sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -e -Ulock:w:0xFF:m
 sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -Ulfuse:w:0xde:m
 sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -Uhfuse:w:0xd8:m
-sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -U efuse:w:0xC3:m
+sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -Uefuse:w:0xC3:m
 
 sudo avrdude -catmelice_isp -b9600 -B10 -pm32u4 -Pusb -v -Uflash:w:BootloaderMassStorage.hex 
 sudo avrdude -catmelice_isp -b300 -B10 -pm32u4 -Pusb -v -Ulock:w:0xc4:m 
